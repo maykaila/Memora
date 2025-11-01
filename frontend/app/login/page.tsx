@@ -8,10 +8,9 @@ export default function LoginPage() {
         <input type="email" placeholder="Email" className="auth-input" />
         <input type="password" placeholder="Password" className="auth-input" />
         
-        <Link href="/forgot-password" className="auth-link">Forgot Password?</Link>
+        <Link href="/forgot-p" className="auth-link">Forgot Password?</Link>
         
         <button className="auth-button">Login</button>
-        <p className="logo-placeholder">Logo somewhere here</p>
       </div>
     </div>
   );

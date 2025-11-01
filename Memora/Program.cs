@@ -1,4 +1,10 @@
+using Memora.Services;
+using Microsoft.AspNetCore.Builder;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Initialize Firebase Admin SDK
+FirebaseService.InitializeFirebase();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

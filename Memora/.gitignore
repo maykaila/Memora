@@ -1,0 +1,34 @@
+# Build files
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.*
+
+# Firebase credentials
+firebase-key.json
+
+# Secrets
+appsettings.Development.json
+
+# Backup or temporary files
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+
+# Visual Studio specific
+.vscode/
+.vs/

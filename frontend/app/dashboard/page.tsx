@@ -1,6 +1,8 @@
+// --- Landing Page ---
+
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Menu, 
   Home, 
@@ -12,6 +14,9 @@ import {
   User, 
   BookOpen 
 } from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { auth } from "../../initializeFirebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 // --- Sub-components ---
 
@@ -164,6 +169,24 @@ export default function App() {
   // Use state to hold decks and categories, starting empty.
   const [decks, setDecks] = useState<RecentDeckCardProps[]>([]);
   const [categories, setCategories] = useState<number[]>([]);
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+  const [authed, setAuthed] = useState(false);
+
+  useEffect(() => {
+    const off = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.replace("/login");      // not logged in → go to login
+      } else {
+        setAuthed(true);
+      }
+      setChecking(false);
+    });
+    return () => off();
+  }, [router]);
+
+  if (checking) return null;     // or a loader
+  if (!authed) return null;      // router already sent them away
 
   return (
     <div>

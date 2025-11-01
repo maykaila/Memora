@@ -1,6 +1,6 @@
 # Build files
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
 out/
 
 # User-specific files

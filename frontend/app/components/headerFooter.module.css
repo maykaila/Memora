@@ -14,11 +14,11 @@
   flex-wrap: wrap;               /* makes it responsive */
 }
 
-.logo {
+/* .logo {
   font-weight: 700;
   font-size: 1.6rem;
   color: #F7FFE0;
-}
+} */
 
 .links {
   display: flex;

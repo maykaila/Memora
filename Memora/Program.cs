@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Builder;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string firebaseKeyPath = builder.Configuration["Firebase:KeyFilePath"];
+
 // Initialize Firebase Admin SDK
-FirebaseService.InitializeFirebase();
+FirebaseService.InitializeFirebase(firebaseKeyPath);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

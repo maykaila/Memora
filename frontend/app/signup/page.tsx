@@ -68,7 +68,7 @@ export default function SignUpPage() {
       }
       // --- END NEW ERROR HANDLING ---
 
-      router.push('/'); 
+      router.push("/dashboard"); 
 
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {

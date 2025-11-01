@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+node_modules
+=======
+<<<<<<< HEAD
 node_modules/
 frontend/.next/
 frontend/.env.local
+=======
+node_modules
+>>>>>>> 652299fcb6a3e15da3665d7c8cdd91f8eb78f75d
+>>>>>>> b93b3ca61059e08f6323433c4cec51f789343aa0

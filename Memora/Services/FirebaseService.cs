@@ -11,7 +11,7 @@ namespace Memora.Services
         private static bool _initialized = false;
 
         // Initialize Firebase once when the service is created
-        public static void InitializeFirebase()
+        public static void InitializeFirebase(string keyFilePath)
         {
             if (!_initialized)
             {

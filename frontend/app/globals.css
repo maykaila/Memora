@@ -1,26 +1,81 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: #f2d7ee; 
+  color: #2b2b2b;
+}
+
+.site-main {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.center-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 140px); /* leaves room for navbar/footer */
+  padding: 2rem 1rem;
+}
+
+.auth-container {
+  background-color: #F7FFE0; 
+  border-radius: 30px;
+  box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.2);
+  padding: 3rem;
+  width: 400px;
+  text-align: center;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 20px;
+  background-color: #ddd;
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.auth-button {
+  background-color: #D16666;
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+  margin: 10px;
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+  transition: 0.2s ease;
+}
+
+.auth-button:hover {
+  background-color: #ff9696;
+  transform: translateY(-2px);
+}
+
+.auth-link {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #6b4b6a;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.logo-placeholder {
+  margin-top: 1rem;
+  font-weight: bold;
+  color: #5a315a;
+}
+
+.mainPage {
+  background-color: #f2d7ee;
 }

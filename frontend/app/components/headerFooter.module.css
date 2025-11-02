@@ -2,53 +2,71 @@
    🌸 NAVBAR STYLES
 ======================= */
 .navbar {
-  position: sticky;              /* stays on top while scrolling */
+  position: sticky;
   top: 0;
   z-index: 50;
-  background-color: #4A1942;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  background: rgba(74, 25, 66, 0.95);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Inner wrapper for consistent width */
+.navbarInner {
+  max-width: 500x;
+  margin: 0 auto;
   padding: 0.8rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;               /* makes it responsive */
 }
-
-/* .logo {
-  font-weight: 700;
-  font-size: 1.6rem;
-  color: #F7FFE0;
-} */
 
 .links {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
+  align-items: center;
 }
 
 .link {
-  color: #F7FFE0;
+  color: #faffee;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s ease;
+  font-size: 15px;
+  transition: all 0.2s ease;
 }
 
-.link:hover {
+.link:hover,
+.link:focus-visible {
   text-decoration: underline;
-  color: #f3f7e8;
+  color: #ffffff;
+}
+
+.signupButton {
+  background: #ffffff;
+  color: #4a1942;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.signupButton:hover {
+  background: #faffee;
+  color: #4a1942;
+  transform: translateY(-1px);
 }
 
 /* --- Mobile adjustments --- */
 @media (max-width: 600px) {
-  .navbar {
+  .navbarInner {
     flex-direction: column;
     align-items: flex-start;
-    padding: 1rem;
+    gap: 0.6rem;
   }
 
   .links {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 0.8rem;
-    margin-top: 0.8rem;
   }
 }
 
@@ -57,21 +75,21 @@
 ======================= */
 .footer {
   width: 100%;
-  background-color: #4A1942;
-  color: #F7FFE0;
+  background-color: #4a1942;
+  color: #f7ffe0;
   font-size: 0.9rem;
   text-align: center;
   padding: 1rem 0;
   box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.08);
-  position: relative;           /* not fixed anymore */
+  position: relative;
   bottom: 0;
 }
 
-/* Optional small hover accent for links in footer */
 .footer a {
   color: inherit;
   text-decoration: underline;
 }
+
 .footer a:hover {
   color: #7b4a7b;
 }

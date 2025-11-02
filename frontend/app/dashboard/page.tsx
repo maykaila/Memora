@@ -1,5 +1,3 @@
-// --- Landing Page ---
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -17,6 +15,8 @@ import {
 import { useRouter } from "next/navigation";
 import { auth } from "../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
+
+// import styles from '../cssFiles/homepage.css';
 
 // --- Sub-components ---
 

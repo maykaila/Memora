@@ -2,7 +2,7 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Memora.Services;
 using Google.Cloud.Firestore;
-using Google.Cloud.Firestore.V1; // <-- ADD THIS NEW USING STATEMENT
+using Google.Cloud.Firestore.V1;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,7 +62,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowNextApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000") // Your Next.js URL
+            policy.WithOrigins("http://localhost:3000")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -77,7 +77,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
-// FIX 2: Corrected the typo 'UseHttpsReddenial.fireirection'
 // app.UseHttpsRedirection();
 
 app.UseRouting(); 

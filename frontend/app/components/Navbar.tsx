@@ -25,54 +25,56 @@ export default function Navbar() {
   }
 
   const handleLogoClick = () => {
-    if (user) {
-      router.push("/dashboard"); // logged in → dashboard
-    } else {
-      router.push("/"); // not logged in → landing page
-    }
+    if (user) router.push("/dashboard");
+    else router.push("/");
   };
 
   return (
-    <nav className={styles.navbar}>
-      {/* ✅ Clickable logo (routes conditionally) */}
-      <div
-        className={styles.logo}
-        style={{ cursor: "pointer" }}
-        onClick={handleLogoClick}
-      >
-        <Image
-          src={logo}
-          alt="Memora Logo"
-          width={150}
-          height={28}
-          quality={100}
-          priority
-        />
-      </div>
+    <nav id="memora-nav" className={styles.navbar}>
+      <div className={styles.navbarInner}>
+        <div
+          className={styles.logo}
+          style={{ cursor: "pointer" }}
+          onClick={handleLogoClick}
+        >
+          <Image
+            src={logo}
+            alt="Memora logo"
+            width={120}
+            height={25}
+            quality={100}
+            priority
+          />
+        </div>
 
-      <div className={styles.links}>
-        {user ? (
-          <button
-            onClick={handleLogout}
-            className={styles.link}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Logout
-          </button>
-        ) : (
-          <>
-            <Link href="/login" className={styles.link}>
-              Login
-            </Link>
-            <Link href="/signup" className={styles.link}>
-              Sign Up
-            </Link>
-          </>
-        )}
+        <div className={styles.links}>
+          {user ? (
+            <button
+              onClick={handleLogout}
+              className={styles.link}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#fff",
+              }}
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link href="/login" className={styles.link}>
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className={`${styles.link} ${styles.signupButton}`}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );

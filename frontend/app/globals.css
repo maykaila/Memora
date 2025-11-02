@@ -23,7 +23,7 @@ body {
 }
 
 .auth-container {
-  background-color: #F7FFE0; 
+  background-color: #faffee; 
   border-radius: 30px;
   box-shadow: 6px 6px 10px rgba(0, 0, 0, 0.2);
   padding: 3rem;
@@ -51,6 +51,8 @@ body {
   margin: 10px;
   box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
   transition: 0.2s ease;
+  font-weight: 600;
+  font-size: small;
 }
 
 .auth-button:hover {

@@ -1,0 +1,327 @@
+/* Layout wrappers for sidebar + header */
+
+.dashboardWrapper {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  min-height: calc(100vh - 80px);
+}
+
+/* when sidebar collapsed: shrink first column */
+.dashboardCollapsed {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+/* make main area fill nicely */
+.dashboardMain {
+  display: flex;
+  flex-direction: column;
+  background: #f2d7ee;
+}
+
+/* ======================
+   Sidebar
+====================== */
+
+.sidebar {
+  background: #3b0f34;
+  color: #f7e8ff;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.1rem;
+  gap: 1.5rem;
+  width: 220px;
+  box-sizing: border-box;
+  transition: width 0.2s ease, padding 0.2s ease;
+}
+
+/* When collapsed */
+.sidebarCollapsed {
+  width: 72px;
+  padding-inline: 0.5rem;
+}
+
+/* Top area */
+
+.sidebarTop {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.menuButton {
+  border: none;
+  background: transparent;
+  color: #f7e8ff;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 7px;
+}
+
+/* Nav */
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 999px;
+  color: #f7e8ff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.navItem svg {
+  flex-shrink: 0;
+}
+
+.navItem:hover {
+  background: #551547;
+  transform: translateX(2px);
+}
+
+.navItemActive {
+  background: #f7e8ff;
+  color: #3b0f34;
+}
+
+/* Text label inside nav items (we hide this when collapsed) */
+.navLabel {
+  transition: opacity 0.15s ease;
+}
+
+/* ======================
+   Sidebar Footer / Streak
+====================== */
+
+.sidebarFooter {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(247, 232, 255, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sidebarHint {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #c9b4d6;
+}
+
+.streakBox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+/* Used for any text we want hidden when collapsed */
+.hideWhenCollapsed {
+  transition: opacity 0.15s ease;
+}
+
+/* ========= Collapse behavior ========= */
+
+.sidebarCollapsed .navItem {
+  justify-content: center;
+  padding-inline: 0.4rem;
+}
+
+.sidebarCollapsed .navLabel {
+  display: none;
+}
+
+.sidebarCollapsed .hideWhenCollapsed {
+  display: none;
+}
+
+/* ======================
+   Header
+====================== */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.5rem;
+  background: #4a1942;
+  color: #f7e8ff;
+  gap: 30rem;
+}
+
+.searchWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f7e8ff;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+}
+
+.searchWrapper svg {
+  color: #4a1942;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.9rem;
+  color: #3b0f34;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+/* Plus button */
+
+.plusButton {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  background: #f7e8ff;
+  color: #4a1942;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.plusButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.22);
+}
+
+/* User button */
+
+.userButton {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  background: #f7e8ff;
+  color: #4a1942;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.userInitial {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Popup menu */
+
+.addMenu {
+  position: absolute;
+  top: 115%;
+  right: 40px; /* position just under the plus */
+  width: 150px;
+  background: #f2d7ee;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  border: 1px solid #4a1942;
+  z-index: 40;
+}
+
+.addMenuItem {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  text-align: left;
+  background: #f2d7ee;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #3b0f34;
+  transition: background 0.15s ease;
+}
+
+.addMenuItem:hover {
+  background: #f7e8ff;
+}
+
+.addMenuDivider {
+  height: 1px;
+  background: #d4b4d6;
+}
+
+/* ======================
+   Responsive small screens
+====================== */
+
+/* On small screens default to collapsed-style sidebar */
+@media (max-width: 900px) {
+  .dashboardWrapper {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    width: 72px;
+    padding-inline: 0.5rem;
+    align-items: center;
+  }
+
+  .navItem {
+    justify-content: center;
+    padding-inline: 0.4rem;
+  }
+
+  .navLabel,
+  .sidebarHint,
+  .streakBox span {
+    display: none;
+  }
+}
+
+/* Profile dropdown */
+
+.profileMenu {
+  position: absolute;
+  top: 115%;
+  right: 0;
+  width: 120px;
+  background: #f2d7ee;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  border: 1px solid #4a1942;
+  overflow: hidden;
+  z-index: 45;
+}
+
+.profileMenuItem {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  background: #f2d7ee;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #3b0f34;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.profileMenuItem:hover {
+  background: #f7e8ff;
+}

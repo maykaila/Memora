@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { auth, signInWithEmailAndPassword } from '../../initializeFirebase'; // Check this path
+import { auth, signInWithEmailAndPassword } from '../../../initializeFirebase'; // Check this path
 
 export default function LoginPage() {
   // State for inputs and errors

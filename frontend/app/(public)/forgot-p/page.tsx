@@ -1,7 +1,7 @@
 "use client"; // Required for hooks and event handlers
 
 import { useState } from 'react';
-import { auth, sendPasswordResetEmail } from '../../initializeFirebase'; // Check path
+import { auth, sendPasswordResetEmail } from '../../../initializeFirebase'; // Check path
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');

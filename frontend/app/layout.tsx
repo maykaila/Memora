@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// import "./cssFiles/homepage.css";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
   title: "Memora App",
@@ -16,11 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <Navbar />
-        <main style={{ paddingBottom: "80px" }}>{children}</main>
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,0 +1,102 @@
+/* ---------- Dashboard content sections ---------- */
+
+.dashboardContent {
+  padding: 2rem 1.5rem 3rem;
+  min-height: calc(100vh - 140px);
+  background: #f2d7ee;
+}
+
+.dashboardSection {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #2b1027;
+}
+
+/* ---------- Recents ---------- */
+
+.recentsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 0.75rem 1.25rem;
+}
+
+.recentCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 18px;
+  background: #f7e8ff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.recentIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: #e1b7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4a1942;
+}
+
+.recentTitle {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #2b1027;
+}
+
+.recentMeta {
+  font-size: 0.75rem;
+  color: #6b4b6a;
+}
+
+/* ---------- Library ---------- */
+
+.libraryGrid {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.libraryPlaceholder,
+.libraryCard {
+  height: 90px;
+  border-radius: 18px;
+  background: #e1b7ff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.libraryCard {
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ---------- Empty state ---------- */
+
+.emptyText {
+  font-size: 0.85rem;
+  color: #6b4b6a;
+  margin: 0 0 0.5rem;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .recentsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .libraryGrid {
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+}

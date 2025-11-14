@@ -7,11 +7,7 @@ import { auth } from "../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "./landingPage.module.css";
 import Image from "next/image";
-<<<<<<< HEAD:frontend/app/page.tsx
-import heroImage from "../public/1.svg";
-=======
 import heroImage from "../../public/1.svg"; // replace with your own hero art
->>>>>>> 7055e82c290936b9a8c7a94fd8799cebe3b800e2:frontend/app/(public)/page.tsx
 
 export default function LandingPage() {
   const router = useRouter();

@@ -13,40 +13,42 @@ interface Deck {
   owner: string;
 }
 
-// 🔹 For now, some mock data so UX isn’t empty.
-// You can later replace these with real data from your API.
-const mockRecents: Deck[] = [
-  {
-    title: "Introduction to Programming",
-    items: 120,
-    owner: "you",
-  },
-  {
-    title: "Programming II",
-    items: 120,
-    owner: "you",
-  },
-  {
-    title: "Data Structures and Algorithm",
-    items: 200,
-    owner: "you",
-  },
-  {
-    title: "Network Security",
-    items: 200,
-    owner: "you",
-  },
-  {
-    title: "Object-Oriented Programming",
-    items: 170,
-    owner: "alexa548",
-  },
-  {
-    title: "Advanced Mobile Development",
-    items: 170,
-    owner: "alexa548",
-  },
-];
+// placeholder only, uncomment for testing.
+// const mockRecents: Deck[] = [
+//   {
+//     title: "Introduction to Programming",
+//     items: 120,
+//     owner: "you",
+//   },
+//   {
+//     title: "Programming II",
+//     items: 120,
+//     owner: "you",
+//   },
+//   {
+//     title: "Data Structures and Algorithm",
+//     items: 200,
+//     owner: "you",
+//   },
+//   {
+//     title: "Network Security",
+//     items: 200,
+//     owner: "you",
+//   },
+//   {
+//     title: "Object-Oriented Programming",
+//     items: 170,
+//     owner: "alexa548",
+//   },
+//   {
+//     title: "Advanced Mobile Development",
+//     items: 170,
+//     owner: "alexa548",
+//   },
+// ];
+
+// for empty recents
+const mockRecents: Deck[] = [];
 
 // For Library placeholders we only care about layout (cards)
 const mockLibrary: Deck[] = []; // set to [] to show "empty" msg, or fill with decks

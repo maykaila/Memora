@@ -168,9 +168,9 @@ export default function SignUpPage() {
       } catch (firebaseError: any) {
         console.error("Firebase Auth error:", firebaseError);
         if (firebaseError.code === "auth/email-already-in-use") {
-          setError("This email is already in use in Firebase Auth.");
+          setError("This email is already in use.");
         } else {
-          setError(firebaseError.message || "Firebase sign-up failed.");
+          setError(firebaseError.message || "Sign-up failed.");
         }
         return;
       }
@@ -204,13 +204,13 @@ export default function SignUpPage() {
         return;
       }
 
-              // After successful signup
-        alert("Sign up successful!");
+        // After successful signup
+        // alert("Sign up successful!");
         router.push("/dashboard");
 
 
       // --- SUCCESS: Redirect to dashboard ---
-      router.push("/dashboard");
+      // router.push("/dashboard");
 
     } catch (error: any) {
       console.error("Unexpected error in handleSignUp:", error);

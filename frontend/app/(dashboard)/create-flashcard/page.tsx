@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import styles from "./createFlashcard.module.css";
+import { auth } from "../../../initializeFirebase";
+import { useRouter } from "next/navigation";
 
 interface Card {
   id: number;
@@ -16,6 +18,11 @@ export default function CreateFlashcardPage() {
     { id: 1, term: "", definition: "" },
     { id: 2, term: "", definition: "" },
   ]);
+
+  // 3. Add loading and error states
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const addCard = () => {
     setCards((prev) => [
@@ -36,11 +43,86 @@ export default function CreateFlashcardPage() {
     setCards((prev) => prev.filter((card) => card.id !== id));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  // 4. Implement the handleSave function
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: send to backend
-    console.log({ title, description, cards });
-    alert("Flashcard set saved (stub). Hook this up to your API.");
+    setIsLoading(true);
+    setError(null);
+
+    // --- Validation ---
+    if (!title) {
+      // setError("Please add a title.");
+      alert("Please add a title."); // comment once testing is done
+      setIsLoading(false);
+      return;
+    }
+    const validCards = cards.filter(c => c.term && c.definition);
+    if (validCards.length === 0) {
+      // setError("Please add at least one card with a term and definition.");
+      alert("Please add at least one card with a term and definition.");
+      setIsLoading(false);
+      return;
+    }
+
+    // --- Get Auth Token ---
+    // could be commented out bc users cant access this page without logging in man
+    const user = auth.currentUser;
+    if (!user) {
+      setError("You must be logged in to create a deck.");
+      setIsLoading(false);
+      // You could redirect to login here
+      router.push('/login');
+      return;
+    }
+    const idToken = await user.getIdToken();
+
+    // --- Format Data for Backend ---
+    const cardData = validCards.map(card => ({
+      Term: card.term,
+      Definition: card.definition,
+      // We'll skip ImageUrl for now
+    }));
+
+    const body = JSON.stringify({
+      Title: title,
+      Description: description,
+      Visibility: false, // Hardcode for now
+      Cards: cardData,
+    });
+
+    // --- Send to Backend ---
+    try {
+      const response = await fetch('http://localhost:5261/api/flashcardsets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: body,
+      });
+
+      if (!response.ok) {
+        // Try to get error message from backend
+        let errorMessage = "Failed to save deck.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          console.error("Could not parse error response", jsonError);
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Uncomment alert once testing is done
+      alert("Deck saved successfully!");
+      router.push('/dashboard'); // dashboard for now, might change in the future
+
+    } catch (err: any) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -26,9 +26,8 @@ export default function LoginPage() {
       // Use the function we exported from initializeFirebase.js
       await signInWithEmailAndPassword(auth, email, password);
       // Success! Redirect to the home page
-      await signInWithEmailAndPassword(auth, email, password);
-// Show a success message
-    alert("Login successful!");
+    // Show a success message
+    // alert("Login successful!");
 
       router.push("/dashboard");
     } catch (firebaseError: any) {

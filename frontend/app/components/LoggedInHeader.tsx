@@ -7,9 +7,11 @@ import { signOut } from "firebase/auth";
 import { auth } from "../../initializeFirebase"; // adjust path if needed
 import styles from "./LISidebarHeader.module.css";
 
+
 export default function LoggedInHeader() {
   const [addOpen, setAddOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,6 +34,11 @@ export default function LoggedInHeader() {
     setAddOpen(false);
     // TODO: route to create-folder page when ready
     console.log("Folder clicked");
+  };
+
+  const handleProfileClick = () => {
+    setProfileOpen(false);
+    router.push("/profile-settings"); // ← ADDED
   };
 
   const handleLogout = async () => {
@@ -116,12 +123,18 @@ export default function LoggedInHeader() {
             aria-haspopup="true"
             aria-expanded={profileOpen}
           >
-            {/* Replace "A" with actual initial if you store displayName/email */}
             <span className={styles.userInitial}>A</span>
           </button>
 
           {profileOpen && (
             <div className={styles.profileMenu}>
+              <button
+                type="button"
+                className={styles.profileMenuItem}
+                onClick={handleProfileClick}   // ← ADDED
+              >
+                Profile
+              </button>
               <button
                 type="button"
                 className={styles.profileMenuItem}

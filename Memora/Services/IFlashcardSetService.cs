@@ -12,5 +12,7 @@ namespace Memora.Services
         Task<IEnumerable<FlashcardSet>> GetSetsForUserAsync(string userId);
 
         // (You can add other methods here later, like GetSetById, UpdateSet, DeleteSet)
+
+        Task<List<FlashcardSet>> GetPublicSetsAsync();
     }
 }

@@ -21,7 +21,7 @@
 .lib-main-content-only {
     flex-grow: 1;
     color: var(--primary-text);
-    min-height: 100vh;
+    min-height: calc(100vh - 120px);;
     background-color: var(--primary-bg); /* Retains the light background color */
     padding-top: 60px; /* Placeholder space for the removed global header if needed */
 }

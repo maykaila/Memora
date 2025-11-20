@@ -6,13 +6,12 @@ using Memora.DTOs;
 namespace Memora.Controllers
 {
     [ApiController]
-    [Route("api/flashcardsets")] // This is the URL: /api/flashcardsets
+    [Route("api/flashcardsets")] // Base URL: /api/flashcardsets
     public class FlashcardSetsController : ControllerBase
     {
         private readonly IFlashcardSetService _setService;
         private readonly FirebaseAuth _auth;
 
-        // Inject your new service
         public FlashcardSetsController(IFlashcardSetService setService)
         {
             _setService = setService;
@@ -24,13 +23,41 @@ namespace Memora.Controllers
         {
             if (Request.Headers.TryGetValue("Authorization", out var authHeader))
             {
-                string idToken = authHeader.ToString().Split(" ")[1];
-                FirebaseToken decodedToken = await _auth.VerifyIdTokenAsync(idToken);
-                return decodedToken.Uid;
+                var headerStr = authHeader.ToString();
+                if (string.IsNullOrEmpty(headerStr) || !headerStr.StartsWith("Bearer "))
+                    return null;
+
+                string idToken = headerStr.Split(" ")[1];
+                try
+                {
+                    FirebaseToken decodedToken = await _auth.VerifyIdTokenAsync(idToken);
+                    return decodedToken.Uid;
+                }
+                catch
+                {
+                    return null;
+                }
             }
             return null;
         }
 
+        // ==========================================
+        // 1. NEW ENDPOINT: Get All Public Sets
+        // ==========================================
+        [HttpGet] // Matches GET /api/flashcardsets
+        public async Task<IActionResult> GetPublicSets()
+        {
+            try
+            {
+                // NOTE: You must define 'GetPublicSetsAsync' in your IFlashcardSetService first!
+                var sets = await _setService.GetPublicSetsAsync();
+                return Ok(sets);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
+            }
+        }
 
         [HttpPost] // POST /api/flashcardsets
         public async Task<IActionResult> CreateSet([FromBody] CreateFlashcardSetRequest request)
@@ -43,10 +70,8 @@ namespace Memora.Controllers
                     return Unauthorized(new { message = "Invalid or missing token." });
                 }
 
-                // Call your "brain"
                 var newSet = await _setService.CreateSetAsync(userId, request);
 
-                // Return a 201 Created status with the new set
                 return CreatedAtAction(nameof(GetSet), new { setId = newSet.SetId }, newSet);
             }
             catch (Exception ex)
@@ -75,13 +100,10 @@ namespace Memora.Controllers
             }
         }
         
-        // Placeholder for the CreatedAtAction
-        [HttpGet("{setId}")] // GET /api/flashcardsets/{some-id}
+        [HttpGet("{setId}")]
         public IActionResult GetSet(string setId)
         {
-            // You would build this method in your service
-            // var set = await _setService.GetSetByIdAsync(setId);
-            // return Ok(set);
+            // Placeholder
             return Ok(new { message = $"Placeholder for set {setId}" });
         }
     }

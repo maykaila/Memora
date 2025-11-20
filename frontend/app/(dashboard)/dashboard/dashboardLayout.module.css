@@ -1,7 +1,7 @@
 /* ---------- Dashboard content sections ---------- */
 
 .dashboardContent {
-  padding: 2rem 1.5rem 3rem;
+  padding: 2rem 3.5rem 3rem;
   min-height: calc(100vh - 140px);
   background: #f2d7ee;
 }
@@ -12,7 +12,7 @@
 
 .sectionTitle {
   margin: 0 0 0.75rem;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #2b1027;
 }
@@ -21,8 +21,10 @@
 
 .recentsGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
   gap: 0.75rem 1.25rem;
+  padding-left: 20px;
+  padding-top: 10px;
 }
 
 .recentCard {
@@ -64,6 +66,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 1rem 1.25rem;
+  padding: 20px;
 }
 
 .libraryPlaceholder,

@@ -1,0 +1,259 @@
+/* Variables matching the provided theme */
+:root {
+    --primary-bg: #f2d7ee;;      /* Light Pink/Purple for main content area */
+    --primary-text: #3b0f34;    /* Dark Purple for main text */
+    --accent-dark: #6a4063;     /* Muted Purple for borders/icons */
+    --accent-light: #e6e3f6;    /* Card background color (lighter purple from screenshot) */
+    --card-bg: #f7e8ff;
+    --muted-text: #8c7288;
+    --card-hover-bg: #f0e6f2;
+    --button-solid-bg: #4a1942;
+    --button-outline-border: #6a4063;
+    --card-meta-color: #8c7288;
+    --edit-icon-color: #7952b3;
+    --delete-icon-color: #7952b3;
+}
+
+/* -------------------------------------
+    A. Main Content Wrapper (ONLY)
+------------------------------------- */
+
+.lib-main-content-only {
+    flex-grow: 1;
+    color: var(--primary-text);
+    min-height: calc(100vh - 120px);;
+    background-color: var(--primary-bg); /* Retains the light background color */
+    padding-top: 60px; /* Placeholder space for the removed global header if needed */
+}
+
+.lib-content-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px; 
+}
+
+.lib-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: var(--primary-text);
+}
+
+/* -------------------------------------
+    B. Local Library Search + Actions Row
+------------------------------------- */
+
+.lib-top-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px; 
+    align-items: center;
+}
+
+.lib-search-input-wrapper {
+    flex-grow: 1;
+    max-width: 450px;
+    position: relative;
+    background-color: var(--accent-light);
+    border-radius: 8px;
+    padding: 12px 15px; 
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.lib-search-icon {
+    color: var(--accent-dark);
+    margin-right: 10px;
+}
+
+.lib-search-input-main {
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 1rem;
+    color: var(--primary-text);
+    width: 100%;
+}
+
+.lib-top-btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: transform 0.1s ease, opacity 0.15s ease;
+    white-space: nowrap;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.lib-top-btn-outline {
+    background-color: white;
+    border: 1px solid var(--button-outline-border);
+    color: var(--button-outline-border);
+}
+
+.lib-top-btn-solid {
+    background-color: var(--button-solid-bg);
+    color: white; 
+}
+
+/* -------------------------------------
+    C. Deck Card List (Individual Sets)
+------------------------------------- */
+
+.lib-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.lib-card {
+    background-color: var(--accent-light); 
+    padding: 18px 25px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.15s;
+    position: relative;
+    cursor: pointer;
+}
+
+.lib-card:hover {
+    background-color: var(--card-hover-bg);
+}
+
+.lib-card-main {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+.lib-pill-icon {
+    background-color:  #e1b7ff;; 
+    color: var(--primary-text);
+    padding: 8px 12px; 
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: flex;
+}
+
+.lib-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.lib-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--card-meta-color);
+}
+
+.lib-cards-count {
+    color: var(--primary-text);
+}
+
+.lib-card-time-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lib-card-category-pill {
+    font-weight: 600;
+    background-color: var(--accent-light); 
+    color: var(--primary-text);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.lib-card-actions {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* --- Inline Edit/Delete Menu --- */
+.lib-popup-menu-inline {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg); 
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    z-index: 10;
+    border: 1px solid var(--card-pill-bg);
+    margin-right: 15px; 
+}
+
+.lib-action-btn {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.lib-edit-btn {
+    border-right: 1px solid var(--card-pill-bg);
+}
+
+.lib-edit-btn svg {
+    color: var(--edit-icon-color);
+}
+
+.lib-delete-btn svg {
+    color: var(--delete-icon-color);
+}
+
+.lib-action-btn:hover {
+    background: var(--card-hover-bg);
+}
+
+/* --- Dots Button --- */
+.lib-dots-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: var(--primary-text);
+    border-radius: 50%;
+    transition: background 0.15s;
+    height: 30px;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lib-dots-btn:hover {
+    background-color: var(--card-pill-bg);
+}
+
+.lib-empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--muted-text);
+    font-size: 1.1rem;
+    background: var(--card-hover-bg);
+    border-radius: 12px;
+}

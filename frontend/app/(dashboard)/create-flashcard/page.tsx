@@ -25,6 +25,11 @@ export default function CreateFlashcardPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // 3. Add loading and error states
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
   const addCard = () => {
     setCards((prev) => [
       ...prev,
@@ -44,42 +49,83 @@ export default function CreateFlashcardPage() {
     setCards((prev) => prev.filter((card) => card.id !== id));
   };
 
+<<<<<<< HEAD
+  // 4. Implement the handleSave function
+=======
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
+<<<<<<< HEAD
+    // --- Validation ---
+    if (!title) {
+      // setError("Please add a title.");
+      alert("Please add a title."); // comment once testing is done
+=======
     if (!title) {
       alert("Please add a title.");
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
       setIsLoading(false);
       return;
     }
     const validCards = cards.filter(c => c.term && c.definition);
     if (validCards.length === 0) {
+<<<<<<< HEAD
+      // setError("Please add at least one card with a term and definition.");
+=======
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
       alert("Please add at least one card with a term and definition.");
       setIsLoading(false);
       return;
     }
 
+<<<<<<< HEAD
+    // --- Get Auth Token ---
+    // could be commented out bc users cant access this page without logging in man
     const user = auth.currentUser;
     if (!user) {
+      setError("You must be logged in to create a deck.");
+      setIsLoading(false);
+      // You could redirect to login here
+=======
+    const user = auth.currentUser;
+    if (!user) {
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
       router.push('/login');
       return;
     }
     const idToken = await user.getIdToken();
 
+<<<<<<< HEAD
+    // --- Format Data for Backend ---
     const cardData = validCards.map(card => ({
       Term: card.term,
       Definition: card.definition,
+      // We'll skip ImageUrl for now
+=======
+    const cardData = validCards.map(card => ({
+      Term: card.term,
+      Definition: card.definition,
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
     }));
 
     const body = JSON.stringify({
       Title: title,
       Description: description,
+<<<<<<< HEAD
+      Visibility: false, // Hardcode for now
+      Cards: cardData,
+    });
+
+    // --- Send to Backend ---
+=======
       Visibility: isPublic, 
       Cards: cardData,
     });
 
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
     try {
       const response = await fetch('http://localhost:5261/api/flashcardsets', {
         method: 'POST',
@@ -91,6 +137,10 @@ export default function CreateFlashcardPage() {
       });
 
       if (!response.ok) {
+<<<<<<< HEAD
+        // Try to get error message from backend
+=======
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
         let errorMessage = "Failed to save deck.";
         try {
           const errorData = await response.json();
@@ -101,8 +151,14 @@ export default function CreateFlashcardPage() {
         throw new Error(errorMessage);
       }
 
+<<<<<<< HEAD
+      // Uncomment alert once testing is done
+      alert("Deck saved successfully!");
+      router.push('/dashboard'); // dashboard for now, might change in the future
+=======
       alert("Deck saved successfully!");
       router.push('/dashboard');
+>>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
 
     } catch (err: any) {
       setError(err.message);

@@ -4,10 +4,7 @@ import { useState } from "react";
 import styles from "./createFlashcard.module.css";
 import { auth } from "../../../initializeFirebase";
 import { useRouter } from "next/navigation";
-<<<<<<< HEAD
-=======
 import { Globe, Lock } from "lucide-react"; 
->>>>>>> 43eef863bc6be0f2f8b15964579ac7a9047f148c
 
 interface Card {
   id: number;

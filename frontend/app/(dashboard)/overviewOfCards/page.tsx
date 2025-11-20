@@ -15,9 +15,9 @@ export default function OverviewOfCardsPage() {
   useEffect(() => {
     if (setId) {
       // Placeholder: In the future, your groupmate will fetch the real set details here
-      setSetTitle(`Flashcard Set #${setId.substring(0, 5)}...`); 
+      setSetTitle(`Flashcard Set`); 
     }
-  }, [setId]);
+  });
 
   return (
     <div style={{ padding: "40px" }}>
@@ -32,7 +32,7 @@ export default function OverviewOfCardsPage() {
       }}>
         <h1 style={{ fontSize: "24px", marginBottom: "10px" }}>{setTitle}</h1>
         <p style={{ color: "#888", marginBottom: "30px" }}>
-          This is the overview page for set ID: <strong>{setId}</strong>
+          This is the overview page for [flashcard set title]
         </p>
         
         <div style={{ 

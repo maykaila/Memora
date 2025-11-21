@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../initializeFirebase";
 
-import DashboardSidebar from "../components/Sidebar";
+import DashboardSidebar from "../components/student/StudentSidebar";
 import DashboardHeader from "../components/LoggedInHeader";
 import styles from "../components/LISidebarHeader.module.css";
 

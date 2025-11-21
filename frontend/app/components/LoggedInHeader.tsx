@@ -4,14 +4,18 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Plus, User } from "lucide-react";
 import { signOut } from "firebase/auth";
-import { auth } from "../../initializeFirebase"; // adjust path if needed
+import { auth } from "../../initializeFirebase"; 
 import styles from "./LISidebarHeader.module.css";
 
+// 1. Define the interface for props
+interface LoggedInHeaderProps {
+  role?: "student" | "teacher"; // Optional prop
+}
 
-export default function LoggedInHeader() {
+// 2. Accept the prop (default to 'student' if missing)
+export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -25,20 +29,24 @@ export default function LoggedInHeader() {
     setAddOpen(false);
   };
 
+  // 3. Update the routing logic based on the role
   const goToFlashcard = () => {
     setAddOpen(false);
-    router.push("/create-flashcard");
+    if (role === "teacher") {
+      router.push("/teacher-create");
+    } else {
+      router.push("/create");
+    }
   };
 
   const handleFolder = () => {
     setAddOpen(false);
-    // TODO: route to create-folder page when ready
     console.log("Folder clicked");
   };
 
   const handleProfileClick = () => {
     setProfileOpen(false);
-    router.push("/profile-settings"); // ← ADDED
+    router.push("/profile-settings");
   };
 
   const handleLogout = async () => {
@@ -51,7 +59,6 @@ export default function LoggedInHeader() {
     }
   };
 
-  // Close any open menu when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!menuRef.current) return;
@@ -69,7 +76,6 @@ export default function LoggedInHeader() {
 
   return (
     <header className={styles.header}>
-      {/* Search */}
       <div className={styles.searchWrapper}>
         <Search size={18} />
         <input
@@ -79,9 +85,7 @@ export default function LoggedInHeader() {
         />
       </div>
 
-      {/* Actions (Plus + Profile) */}
       <div className={styles.headerActions} ref={menuRef}>
-        {/* Plus button + menu */}
         <div style={{ position: "relative" }}>
           <button
             type="button"
@@ -114,7 +118,6 @@ export default function LoggedInHeader() {
           )}
         </div>
 
-        {/* Profile button + logout menu */}
         <div style={{ position: "relative" }}>
           <button
             type="button"
@@ -131,7 +134,7 @@ export default function LoggedInHeader() {
               <button
                 type="button"
                 className={styles.profileMenuItem}
-                onClick={handleProfileClick}   // ← ADDED
+                onClick={handleProfileClick}
               >
                 Profile
               </button>

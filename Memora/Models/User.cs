@@ -21,5 +21,8 @@ namespace Memora.Models
 
         [FirestoreProperty("date_created")]
         public Timestamp DateCreated { get; set; }
+
+        [FirestoreProperty("role")]
+        public string? Role { get; set; }
     }
 }

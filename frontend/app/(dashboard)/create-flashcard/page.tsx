@@ -21,6 +21,11 @@ export default function CreateFlashcardPage() {
     { id: 1, term: "", definition: "" },
     { id: 2, term: "", definition: "" },
   ]);
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
+  // const router = useRouter();
+
+  // 3. Add loading and error states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();

@@ -54,7 +54,8 @@ namespace Memora.Controllers
                 var newUser = await _userService.CreateUserAsync(
                     uid, 
                     request.Username, 
-                    userRecord.Email // Use the trusted email
+                    userRecord.Email, // Use the trusted email
+                    request.Role 
                 );
 
                 return CreatedAtAction(nameof(GetUser), new { id = newUser.UserId }, newUser);
@@ -74,9 +75,11 @@ namespace Memora.Controllers
 
         // A placeholder method so 'CreatedAtAction' works
         [HttpGet("{id}")]
-        public IActionResult GetUser(string id)
+        public async Task<IActionResult> GetUser(string id)
         {
-            return Ok(new { message = $"User {id} placeholder" });
+            var user = await _userService.GetUserAsync(id);
+            if (user == null) return NotFound();
+            return Ok(user);
         }
     }
 }

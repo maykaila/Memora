@@ -1,184 +1,66 @@
 "use client"; 
 
 import { useState } from 'react';
+import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { auth, createUserWithEmailAndPassword } from '../../../initializeFirebase'; 
-
-// export default function SignUpPage() {
-//   const [username, setUsername] = useState('');
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-//   const [confirmPassword, setConfirmPassword] = useState('');
-//   const [error, setError] = useState<string | null>(null);
-
-//   const router = useRouter(); 
-
-// //   const handleSignUp = async (e: React.FormEvent) => {
-// //     e.preventDefault(); 
-// //     setError(null); 
-
-// //     if (!username || !email || !password || !confirmPassword) {
-// //       setError("Please fill in all fields.");
-// //       return;
-// //     }
-// //     if (password !== confirmPassword) {
-// //       setError("Passwords do not match.");
-// //       return;
-// //     }
-// //      if (password.length < 6) {
-// //       setError("Password must be at least 6 characters long.");
-// //       return;
-// //     }
-
-// //     try {
-// //       // --- STEP 1: Create user in Firebase Auth (Client-side) ---
-// //       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-// //       const user = userCredential.user;
-      
-// //       const idToken = await user.getIdToken();
-
-// //       // --- STEP 2: Call your ASP.NET backend (Server-side) ---
-// //       const response = await fetch('http://localhost:5261/api/users/create', { // Make sure this URL is correct!
-// //         method: 'POST',
-// //         headers: {
-// //           'Content-Type': 'application/json',
-// //           'Authorization': `Bearer ${idToken}` 
-// //         },
-// //         body: JSON.stringify({
-// //           username: username,
-// //           email: user.email 
-// //         })
-// //       });
-
-// //       // --- THIS IS THE NEW, SAFER ERROR HANDLING ---
-// //       if (!response.ok) {
-// //         let errorMessage = "Failed to create user profile on server.";
-// //         try {
-// //             // Try to parse JSON, but don't fail if it's empty
-// //             const errorData = await response.json();
-// //             if (errorData && errorData.message) {
-// //                 errorMessage = errorData.message;
-// //             }
-// //         } catch (jsonError) {
-// //             // The response was not JSON (it was empty or HTML)
-// //             // Log the error but use the generic message
-// //             console.error("Could not parse server error response:", jsonError);
-// //         }
-// //         throw new Error(errorMessage);
-// //       }
-// //       // --- END NEW ERROR HANDLING ---
-
-// //       router.push("/dashboard"); 
-
-// //     } catch (error: any) {
-// //       if (error.code === 'auth/email-already-in-use') {
-// //         setError('This email is already in use.');
-// //       } else {
-// //         setError(error.message); // Show error from backend or auth
-// //       }
-// //       console.error("Sign up failed:", error);
-// //     }
-// //   };
-  
-// //   const handleCancel = () => {
-// //     router.push('/'); 
-// //   };
-
-// //   return (
-// //     <div className="center-page">
-// //       <form className="auth-container" onSubmit={handleSignUp}>
-// //         <h2>Sign Up</h2>
-        
-// //         {error && <p style={{ color: 'red' }}>{error}</p>}
-
-// //         <input
-// //           type="text"
-// //           placeholder="Username"
-// //           className="auth-input"
-// //           value={username}
-// //           onChange={(e) => setUsername(e.target.value)}
-// //         />
-// //         <input
-// //           type="email"
-// //           placeholder="Email"
-// //           className="auth-input"
-// //           value={email}
-// //           onChange={(e) => setEmail(e.target.value)}
-// //         />
-// //         <input
-// //           type="password"
-// //           placeholder="Password"
-// //           className="auth-input"
-// //           value={password}
-// //           onChange={(e) => setPassword(e.target.value)}
-// //         />
-// //         <input
-// //           type="password"
-// //           placeholder="Confirm Password"
-// //           className="auth-input"
-// //           value={confirmPassword}
-// //           onChange={(e) => setConfirmPassword(e.target.value)}
-// //         />
-
-// //         <div>
-// //           <button type="submit" className="auth-button">Sign Up</button>
-// //           <button type="button" className="auth-button" onClick={handleCancel}>Cancel</button>
-// //         </div>
-// //       </form>
-// //     </div>
-// //   );
-// // }
-
+import { GraduationCap, School } from "lucide-react"; // Icons for visual cue
+import styles from '../auth.module.css'; 
 
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // Default to student
+  const [role, setRole] = useState<'student' | 'teacher'>('student'); 
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsLoading(true);
 
-    // --- Input validation ---
     if (!username || !email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
+      setIsLoading(false);
       return;
     }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      setIsLoading(false);
       return;
     }
     if (password.length < 6) {
       setError("Password must be at least 6 characters long.");
+      setIsLoading(false);
       return;
     }
 
-  
-
-
     try {
-      // --- STEP 1: Create user in Firebase Auth ---
+      // 1. Create Auth User in Firebase
       let userCredential;
       try {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
       } catch (firebaseError: any) {
-        console.error("Firebase Auth error:", firebaseError);
         if (firebaseError.code === "auth/email-already-in-use") {
           setError("This email is already in use.");
         } else {
           setError(firebaseError.message || "Sign-up failed.");
         }
+        setIsLoading(false);
         return;
       }
 
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      // --- STEP 2: Call backend to create user profile ---
+      // 2. Create User Profile in Backend (SQL/Firestore)
+      // We now include the 'role' in the body
       const response = await fetch("http://localhost:5261/api/users/create", {
         method: "POST",
         headers: {
@@ -188,6 +70,8 @@ export default function SignUpPage() {
         body: JSON.stringify({
           username: username,
           email: user.email,
+          role: role.toUpperCase(), // Send 'STUDENT' or 'TEACHER'
+          firebaseId: user.uid 
         }),
       });
 
@@ -200,70 +84,133 @@ export default function SignUpPage() {
           console.error("Backend response could not be parsed:", jsonError);
         }
         setError(errorMessage);
-        console.error("Backend error response:", await response.text());
+        setIsLoading(false);
         return;
       }
 
-        // After successful signup
-        // alert("Sign up successful!");
+      // 3. Redirect based on the selected Role
+      if (role === 'teacher') {
+        router.push("/teacher-dashboard");
+      } else {
         router.push("/dashboard");
-
-
-      // --- SUCCESS: Redirect to dashboard ---
-      // router.push("/dashboard");
+      }
 
     } catch (error: any) {
       console.error("Unexpected error in handleSignUp:", error);
-      setError(error.message || JSON.stringify(error));
+      setError(error.message || "An unexpected error occurred.");
+      setIsLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    router.push('/');
-  };
-
-  // --- JSX RETURN ---
   return (
-    <div className="center-page">
-      <form className="auth-container" onSubmit={handleSignUp}>
-        <h2>Sign Up</h2>
+    <div className={styles.pageWrapper}>
+      <div className={styles.authCard}>
         
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {/* LEFT SIDE */}
+        <div className={styles.formSection}>
+          <form className={styles.formContainer} onSubmit={handleSignUp}>
+            <h2 style={{ color: '#4a1942', marginBottom: '1rem' }}>Create Account</h2>
+            
+            {error && <p className={styles.error}>{error}</p>}
 
-        <input
-          type="text"
-          placeholder="Username"
-          className="auth-input"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          className="auth-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="auth-input"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          className="auth-input"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+            {/* Role Selector */}
+            <div style={{ 
+              display: 'flex', 
+              gap: '10px', 
+              marginBottom: '15px', 
+              background: '#f0c9ff', 
+              padding: '5px', 
+              borderRadius: '10px' 
+            }}>
+              <button
+                type="button"
+                onClick={() => setRole('student')}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: role === 'student' ? '#4a1942' : 'transparent',
+                  color: role === 'student' ? 'white' : '#4a1942',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
+                }}
+              >
+                <GraduationCap size={18} /> Student
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole('teacher')}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  background: role === 'teacher' ? '#4a1942' : 'transparent',
+                  color: role === 'teacher' ? 'white' : '#4a1942',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
+                }}
+              >
+                <School size={18} /> Teacher
+              </button>
+            </div>
 
-        <div>
-          <button type="submit" className="auth-button">Sign Up</button>
-          <button type="button" className="auth-button" onClick={handleCancel}>Cancel</button>
+            <input
+              type="text"
+              placeholder="Username"
+              className={styles.input}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              className={styles.input}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              className={styles.input}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className={styles.input}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+              <button type="submit" className={styles.submitButton} disabled={isLoading}>
+                {isLoading ? "Creating..." : "Sign Up"}
+              </button>
+            </div>
+
+            <div style={{textAlign: 'center', marginTop: '5px', fontSize: '14px', color: '#555'}}>
+              Already have an account? <Link href="/login" style={{color: '#d16d6d', fontWeight: 'bold', textDecoration: 'none'}}>Login</Link>
+            </div>
+          </form>
         </div>
-      </form>
+
+        {/* RIGHT SIDE */}
+        <div className={styles.imageSection}>
+          <Image 
+            src="/1.svg" 
+            alt="Sign Up Visual" 
+            width={500} 
+            height={500} 
+            className={styles.heroImage}
+            priority
+          />
+        </div>
+      </div>
     </div>
   );
 }

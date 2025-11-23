@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import styles from "./createFlashcard.module.css";
-import { auth } from "../../../initializeFirebase";
+// Adjust this path to wherever your firebase init file is relative to components/shared
+import { auth } from "../../initializeFirebase"; 
 import { useRouter } from "next/navigation";
 import { Globe, Lock } from "lucide-react"; 
 
@@ -12,7 +13,11 @@ interface Card {
   definition: string;
 }
 
-export default function CreateFlashcardPage() {
+interface FlashcardCreatorProps {
+    role: "student" | "teacher";
+}
+
+export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false); 
@@ -21,11 +26,7 @@ export default function CreateFlashcardPage() {
     { id: 1, term: "", definition: "" },
     { id: 2, term: "", definition: "" },
   ]);
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
-  // const router = useRouter();
 
-  // 3. Add loading and error states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -83,6 +84,8 @@ export default function CreateFlashcardPage() {
       Description: description,
       Visibility: isPublic, 
       Cards: cardData,
+      // We can optionally send the role to the backend if needed
+      CreatedByRole: role 
     });
 
     try {
@@ -107,7 +110,13 @@ export default function CreateFlashcardPage() {
       }
 
       alert("Deck saved successfully!");
-      router.push('/dashboard');
+      
+      // ROUTING LOGIC BASED ON ROLE
+      if (role === "teacher") {
+        router.push('/teacher-dashboard');
+      } else {
+        router.push('/dashboard');
+      }
 
     } catch (err: any) {
       setError(err.message);
@@ -123,7 +132,9 @@ export default function CreateFlashcardPage() {
         {/* LEFT SIDE */}
         <section className={styles.leftColumn}>
           <div className={styles.panel}>
-            <h2 className={styles.sectionTitle}>Create a new Flashcard</h2>
+            <h2 className={styles.sectionTitle}>
+                {role === "teacher" ? "Create Class Deck" : "Create a new Flashcard"}
+            </h2>
             <input
               className={styles.input}
               placeholder="Title"
@@ -250,11 +261,11 @@ export default function CreateFlashcardPage() {
           </div>
 
           <div className={styles.actionsRow}>
-            <button type="button" className={styles.secondaryAction}>
+            <button type="button" className={styles.secondaryAction} onClick={() => router.back()}>
               Cancel
             </button>
-            <button type="submit" className={styles.primaryAction}>
-              Save deck
+            <button type="submit" className={styles.primaryAction} disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save deck"}
             </button>
           </div>
         </section>

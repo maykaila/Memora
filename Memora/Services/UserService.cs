@@ -11,32 +11,38 @@ namespace Memora.Services
     {
         private readonly FirestoreDb _db;
 
-        // This constructor receives the 'FirestoreDb' instance 
-        // that you registered as a singleton in Program.cs
         public UserService(FirestoreDb db)
         {
             _db = db;
         }
 
-        public async Task<User> CreateUserAsync(string uid, string username, string email)
+        public async Task<User> CreateUserAsync(string uid, string username, string email, string role)
         {
-            // 1. Create your C# User object
             var newUser = new User
             {
                 UserId = uid,
-                Username = username,
-                Email = email,
-                ProfilePic = null, 
-                DateCreated = Timestamp.FromDateTime(DateTime.UtcNow)
+                Username = username ?? "Unknown", // Handle potential nulls safely
+                Email = email ?? "",
+                ProfilePic = null,
+                DateCreated = Timestamp.FromDateTime(DateTime.UtcNow),
+                Role = role ?? "Student" // Default to Student if null
             };
 
-            // 2. Get the collection reference
             CollectionReference usersRef = _db.Collection("users");
-
-            // 3. Save to Firestore, using the 'uid' as the document ID
             await usersRef.Document(uid).SetAsync(newUser);
 
             return newUser;
+        }
+
+        // FIX: Return type is now Task<User?> to allow returning null
+        public async Task<User?> GetUserAsync(string uid)
+        {
+            DocumentSnapshot snapshot = await _db.Collection("users").Document(uid).GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                return snapshot.ConvertTo<User>();
+            }
+            return null;
         }
     }   
 }

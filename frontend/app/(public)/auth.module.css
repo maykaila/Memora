@@ -14,7 +14,7 @@
   display: flex;
   width: 100%;
   max-width: 1100px; /* Prevents it from getting too wide on big screens */
-  height: 570px;     /* Fixed height for consistency, or use min-height */
+  height: 590px;     /* Fixed height for consistency, or use min-height */
   background-color: #fdfdf5; /* Cream background */
   border-radius: 50px; /* The large rounded corners */
   overflow: hidden;

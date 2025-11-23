@@ -1,7 +1,13 @@
-using Memora.Models; // <-- ADD THIS LINE
+using Memora.Models;
 using System.Threading.Tasks;
-public interface IUserService
+
+namespace Memora.Services
 {
-    // Returns the newly created User object
-    Task<User> CreateUserAsync(string uid, string username, string email);
+    public interface IUserService
+    {
+        Task<User> CreateUserAsync(string uid, string username, string email, string role);
+        
+        // FIX: Return type changed to Task<User?>
+        Task<User?> GetUserAsync(string uid);
+    }
 }

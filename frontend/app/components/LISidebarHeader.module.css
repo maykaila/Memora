@@ -32,6 +32,10 @@
   width: 220px;
   box-sizing: border-box;
   transition: width 0.2s ease, padding 0.2s ease;
+  position: sticky;    /* Stick to the viewport */
+  top: 0;              /* Stick to the very top */
+  height: 100vh;       /* Force it to be the full height of the screen */
+  overflow-y: auto;    /* Allow internal scrolling if sidebar content is too long */
 }
 
 /* When collapsed */

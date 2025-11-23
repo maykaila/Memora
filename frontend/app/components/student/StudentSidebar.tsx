@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Library, LayoutGrid, Brain, Menu } from "lucide-react";
-import styles from "./LISidebarHeader.module.css";
+import styles from "../LISidebarHeader.module.css";
 
 interface SidebarProps {
   collapsed: boolean;

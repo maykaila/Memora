@@ -81,5 +81,27 @@ namespace Memora.Controllers
             if (user == null) return NotFound();
             return Ok(user);
         }
+
+        // For Streak -------------------------------------------------------------------------------------------
+        [HttpPost("checkin")]
+        public async Task<IActionResult> CheckIn()
+        {
+            try
+            {
+                string authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader)) return Unauthorized();
+                string idToken = authHeader.Split(" ")[1];
+                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+                
+                await _userService.CheckInUserAsync(decodedToken.Uid);
+                
+                return Ok(new { message = "Daily check-in successful" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+        // For Streak -------------------------------------------------------------------------------------------
     }
 }

@@ -44,5 +44,46 @@ namespace Memora.Services
             }
             return null;
         }
+
+        // For Streak ----------------------------------------------------------------------------------
+        public async Task CheckInUserAsync(string uid)
+        {
+            DocumentReference userRef = _db.Collection("users").Document(uid);
+            
+            // Run inside a transaction to be safe
+            await _db.RunTransactionAsync(async transaction =>
+            {
+                DocumentSnapshot snapshot = await transaction.GetSnapshotAsync(userRef);
+                if (snapshot.Exists)
+                {
+                    User user = snapshot.ConvertTo<User>();
+                    
+                    DateTime today = DateTime.UtcNow.Date;
+                    DateTime? lastDate = user.LastLoginDate?.Date;
+
+                    // Only calculate if they haven't already logged in today
+                    if (lastDate != today)
+                    {
+                        if (lastDate == today.AddDays(-1))
+                        {
+                            // Logged in yesterday: Streak goes up!
+                            user.CurrentStreak++;
+                        }
+                        else
+                        {
+                            // Missed a day (or first time): Reset to 1
+                            user.CurrentStreak = 1;
+                        }
+
+                        // Update date to today
+                        user.LastLoginDate = DateTime.UtcNow;
+
+                        // Save updates
+                        transaction.Set(userRef, user, SetOptions.MergeAll);
+                    }
+                }
+            });
+        }
+        // For Streak ----------------------------------------------------------------------------------
     }   
 }

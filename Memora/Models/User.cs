@@ -19,10 +19,18 @@ namespace Memora.Models
         [FirestoreProperty("profile_pic")]
         public string? ProfilePic { get; set; }
 
+        [FirestoreProperty("role")]
+        public string? Role { get; set; }
+
         [FirestoreProperty("date_created")]
         public Timestamp DateCreated { get; set; }
 
-        [FirestoreProperty("role")]
-        public string? Role { get; set; }
+        // For Streak ----------------------------------
+        [FirestoreProperty("current_streak")]
+        public int CurrentStreak { get; set; } = 0;
+
+        [FirestoreProperty("last_login_date")]
+        public DateTime? LastLoginDate { get; set; } 
+        // For Streak ----------------------------------
     }
 }

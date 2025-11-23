@@ -31,6 +31,13 @@ export default function DashboardPage() {
         try {
           const idToken = await user.getIdToken();
           
+          // For Streak -----------------------------------------------
+          await fetch('http://localhost:5261/api/users/checkin', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${idToken}` },
+          });
+          // For Streak -----------------------------------------------
+
           // 1. Fetch My Sets
           const myResponse = await fetch('http://localhost:5261/api/flashcardsets/my-sets', {
             method: 'GET',

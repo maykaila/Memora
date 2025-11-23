@@ -28,10 +28,10 @@ namespace Memora.Models
         public bool Visibility { get; set; } = false;
 
         [FirestoreProperty("date_created")]
-        public Timestamp DateCreated { get; set; }
+        public DateTime DateCreated { get; set; }
 
         [FirestoreProperty("last_updated")]
-        public Timestamp LastUpdated { get; set; }
+        public DateTime LastUpdated { get; set; }
 
         // This is the NoSQL way to handle your Set_Tags requirement
         [FirestoreProperty("tag_ids")]

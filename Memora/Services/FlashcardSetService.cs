@@ -29,8 +29,8 @@ namespace Memora.Services
                 Title = request.Title,
                 Description = request.Description,
                 Visibility = request.Visibility,
-                DateCreated = Timestamp.FromDateTime(DateTime.UtcNow),
-                LastUpdated = Timestamp.FromDateTime(DateTime.UtcNow),
+                DateCreated = DateTime.UtcNow,
+                LastUpdated = DateTime.UtcNow,
                 TagIds = request.TagIds ?? new List<string>()
             };
 

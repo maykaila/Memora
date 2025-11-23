@@ -22,6 +22,6 @@ namespace Memora.Models
         public string? ImageUrl { get; set; } // Nullable
 
         [FirestoreProperty("date_created")]
-        public Timestamp DateCreated { get; set; }
+        public DateTime DateCreated { get; set; }
     }
 }

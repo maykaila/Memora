@@ -74,6 +74,7 @@ builder.Services.AddControllers();
 // --- This will now work thanks to 'using Memora.Services;' ---
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFlashcardSetService, FlashcardSetService>();
+builder.Services.AddScoped<IFolderService, FolderService>();
 // --- END ---
 
 var app = builder.Build();

@@ -106,5 +106,29 @@ namespace Memora.Controllers
             // Placeholder
             return Ok(new { message = $"Placeholder for set {setId}" });
         }
+
+        [HttpDelete("{setId}")]
+        public async Task<IActionResult> DeleteSet(string setId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized(new { message = "Invalid or missing token." });
+
+                bool success = await _setService.DeleteSetAsync(setId, userId);
+
+                if (!success)
+                {
+                    // Either not found or not authorized (we treat them same for security)
+                    return NotFound(new { message = "Set not found or you do not have permission to delete it." });
+                }
+
+                return Ok(new { message = "Flashcard set deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
+            }
+        }
     }
 }

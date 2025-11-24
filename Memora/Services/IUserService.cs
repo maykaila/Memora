@@ -7,7 +7,12 @@ namespace Memora.Services
     {
         Task<User> CreateUserAsync(string uid, string username, string email, string role);
         
-        // FIX: Return type changed to Task<User?>
+        //For Role ------------------------------
         Task<User?> GetUserAsync(string uid);
+        //For Role ------------------------------
+
+        //For Streak ----------------------------
+        Task CheckInUserAsync(string uid);
+        //For Streak ----------------------------
     }
 }

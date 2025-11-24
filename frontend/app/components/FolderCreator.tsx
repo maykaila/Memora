@@ -1,126 +1,106 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { FolderPlus } from "lucide-react";
-import { auth } from "../../initializeFirebase"; // Make sure this path is correct!
+import { auth } from "../../initializeFirebase"; 
 import styles from "./createFolder.module.css";
 
-export default function CreateFolderPage() {
-  const router = useRouter();
+interface CreateFolderModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void; // Callback to refresh the list
+  role: string;
+}
+
+export default function CreateFolderModal({ isOpen, onClose, onSuccess, role }: CreateFolderModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSave = async (e: React.FormEvent) => {
+  if (!isOpen) return null;
+
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) return;
+
     setIsLoading(true);
-
-    // --- Validation ---
-    if (!title.trim()) {
-      alert("Please enter a folder name.");
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // 1. GET THE USER & TOKEN (This was missing!)
       const user = auth.currentUser;
-      if (!user) {
-        alert("You must be logged in to create a folder.");
-        router.push("/login");
-        return;
-      }
+      if (!user) throw new Error("Not logged in");
+      
       const idToken = await user.getIdToken();
 
-      // 2. SEND TO BACKEND
       const response = await fetch('http://localhost:5261/api/folders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}` // Now idToken is defined
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({ 
           Title: title, 
-          Description: description 
+          Description: description,
+          CreatedByRole: role
+          // Removed Color logic entirely
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create folder.");
-      }
+      if (!response.ok) throw new Error("Failed to create folder");
 
-      // 3. SUCCESS
-      alert("Folder created successfully!");
-      router.push('/dashboard');
+      // Reset and Close
+      setTitle("");
+      setDescription("");
+      onSuccess(); // Tell dashboard to refresh data
+      onClose();   // Close modal
 
-    } catch (error: any) {
-      console.error("Error creating folder:", error);
-      alert(error.message);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create folder. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className={styles.page}>
-      
-      <div className={styles.card}>
-        
+    <div className={styles.overlay} onClick={onClose}>
+      {/* Stop click propagation so clicking inside the box doesn't close it */}
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <div className={styles.iconWrapper}>
-            <FolderPlus size={28} />
-          </div>
-          <h1 className={styles.title}>
-            Create New Folder
-          </h1>
+          <h2 className={styles.title}>New Folder</h2>
         </div>
 
-        <form onSubmit={handleSave}>
-          
-          {/* Folder Name Input */}
+        <form onSubmit={handleCreate}>
           <div className={styles.formGroup}>
             <label className={styles.label}>Folder Name</label>
-            <input
+            <input 
               className={styles.input}
+              placeholder="e.g. Biology 101"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Biology 101"
+              autoFocus
             />
           </div>
 
-          {/* Description Input */}
-          <div className={`${styles.formGroup} ${styles.last}`}>
-            <label className={styles.label}>
-              Description <span className={styles.optional}>(Optional)</span>
-            </label>
-            <textarea
-              className={`${styles.input} ${styles.textarea}`}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Description (Optional)</label>
+            <textarea 
+              className={styles.textarea}
+              placeholder="What is this folder for?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this folder for?"
             />
           </div>
 
-          {/* Actions */}
           <div className={styles.actions}>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className={styles.cancelButton}
-            >
+            <button type="button" onClick={onClose} className={styles.cancelBtn}>
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={styles.submitButton}
+            <button 
+              type="submit" 
+              disabled={!title.trim() || isLoading} 
+              className={styles.createBtn}
             >
               {isLoading ? "Creating..." : "Create Folder"}
             </button>
           </div>
-
         </form>
       </div>
     </div>

@@ -75,5 +75,40 @@ namespace Memora.Services
             
             return sets;
         }
+
+        public async Task<bool> DeleteSetAsync(string setId, string userId)
+        {
+            DocumentReference setDocRef = _setsCollection.Document(setId);
+            DocumentSnapshot snapshot = await setDocRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists) return false;
+
+            // Check ownership
+            FlashcardSet set = snapshot.ConvertTo<FlashcardSet>();
+            if (set.UserId != userId) 
+            {
+                // User tries to delete someone else's deck -> Fail
+                return false; 
+            }
+
+            // 1. We must delete all flashcards in the subcollection first
+            CollectionReference cardsCollection = setDocRef.Collection("flashcards");
+            QuerySnapshot cardsSnapshot = await cardsCollection.GetSnapshotAsync();
+
+            WriteBatch batch = _db.StartBatch();
+
+            foreach (DocumentSnapshot cardDoc in cardsSnapshot.Documents)
+            {
+                batch.Delete(cardDoc.Reference);
+            }
+
+            // 2. Delete the main set document
+            batch.Delete(setDocRef);
+
+            // 3. Commit the batch delete
+            await batch.CommitAsync();
+
+            return true;
+        }
     }
 }

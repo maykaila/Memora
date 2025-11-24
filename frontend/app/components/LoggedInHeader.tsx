@@ -41,7 +41,7 @@ export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps
 
   const handleFolder = () => {
     setAddOpen(false);
-    console.log("Folder clicked");
+    router.push("/createFolder");
   };
 
   const handleProfileClick = () => {

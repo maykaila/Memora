@@ -75,6 +75,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IFlashcardSetService, FlashcardSetService>();
 builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IClassService, ClassService>();
 // --- END ---
 
 var app = builder.Build();

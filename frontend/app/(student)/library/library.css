@@ -169,6 +169,8 @@
     gap: 10px;
 }
 
+
+/* inline horizontal type
 /* --- Inline Edit/Folder/Delete Menu --- */
 .lib-popup-menu-inline {
     display: flex;

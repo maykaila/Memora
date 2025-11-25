@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Library, LayoutGrid, Brain, Menu } from "lucide-react";
+import { Home, Library, Users, Brain, Menu, GraduationCap } from "lucide-react"; // Added GraduationCap
 import styles from "../LISidebarHeader.module.css";
 
 interface SidebarProps {
@@ -55,15 +55,27 @@ export default function DashboardSidebar({ collapsed, onToggle }: SidebarProps) 
           <span className={styles.navLabel}>Library</span>
         </Link>
 
+        {/* NEW: Classes Link */}
         <Link
-          href="/categories"
+          href="/student-classes" 
           className={`${styles.navItem} ${
-            isActive("/categories") ? styles.navItemActive : ""
+            isActive("/student-classes") ? styles.navItemActive : ""
           }`}
         >
-          <LayoutGrid size={18} />
-          <span className={styles.navLabel}>Categories</span>
+          <GraduationCap size={18} /> 
+          <span className={styles.navLabel}>Classes</span>
         </Link>
+
+        {/* Join Class Action */}
+        {/* <Link
+          href="/join-class" 
+          className={`${styles.navItem} ${
+            isActive("/join-class") ? styles.navItemActive : ""
+          }`}
+        >
+          <Users size={18} /> 
+          <span className={styles.navLabel}>Join Class</span>
+        </Link> */}
       </nav>
 
       {/* Streak / footer */}

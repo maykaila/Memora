@@ -10,7 +10,8 @@ namespace Memora.Services
         Task<Class> CreateClassAsync(string teacherId, CreateClassRequest request);
         Task<IEnumerable<Class>> GetClassesForTeacherAsync(string teacherId);
         
-        // You will need this later for students to join
+        // For the student side of classes
         Task<bool> JoinClassAsync(string studentId, string classCode);
+        Task<IEnumerable<Class>> GetClassesForStudentAsync(string studentId);
     }
 }

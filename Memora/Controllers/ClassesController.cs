@@ -88,5 +88,23 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpGet("joined")]
+        public async Task<IActionResult> GetJoinedClasses()
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                // This calls the service method to get classes where student_ids contains userId
+                var classes = await _classService.GetClassesForStudentAsync(userId);
+                return Ok(classes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

@@ -85,5 +85,15 @@ namespace Memora.Services
             });
         }
         // For Streak ----------------------------------------------------------------------------------
+
+        public async Task<User?> GetUserByIdAsync(string uid)
+        {
+            DocumentSnapshot snapshot = await _db.Collection("users").Document(uid).GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                return snapshot.ConvertTo<User>();
+            }
+            return null;
+        }
     }   
 }

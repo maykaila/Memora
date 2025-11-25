@@ -75,5 +75,17 @@ namespace Memora.Services
             
             return true;
         }
+
+        public async Task<IEnumerable<Class>> GetClassesForStudentAsync(string studentId)
+        {
+            // Firestore "array-contains" query
+            // Finds documents where the 'student_ids' array contains 'studentId'
+            Query query = _classesCollection.WhereArrayContains("student_ids", studentId);
+            QuerySnapshot snapshot = await query.GetSnapshotAsync();
+
+            return snapshot.Documents.Select(doc => doc.ConvertTo<Class>()).ToList();
+        }
+
+        
     }
 }

@@ -1,5 +1,5 @@
 /* -------------------------------------
-    A. Main Content Wrapper (ONLY)
+   A. Main Content Wrapper (ONLY)
 ------------------------------------- */
 
 .lib-main-content-only {
@@ -24,7 +24,7 @@
 }
 
 /* -------------------------------------
-    B. Local Library Search + Actions Row
+   B. Local Library Search + Actions Row
 ------------------------------------- */
 
 .lib-top-row {
@@ -87,7 +87,7 @@
 }
 
 /* -------------------------------------
-    C. Deck Card List (Individual Sets)
+   C. Deck Card List (Individual Sets)
 ------------------------------------- */
 
 .lib-list {
@@ -169,7 +169,9 @@
     gap: 10px;
 }
 
-/* --- Inline Edit/Delete Menu --- */
+
+/* inline horizontal type
+/* --- Inline Edit/Folder/Delete Menu --- */
 .lib-popup-menu-inline {
     display: flex;
     align-items: center;
@@ -197,20 +199,29 @@
     white-space: nowrap;
 }
 
+.lib-action-btn:hover {
+    background: var(--card-hover-bg);
+}
+
+/* 1. Edit Button (Left) */
 .lib-edit-btn {
     border-right: 1px solid var(--card-pill-bg);
 }
-
 .lib-edit-btn svg {
     color: var(--edit-icon-color);
 }
 
-.lib-delete-btn svg {
-    color: var(--delete-icon-color);
+/* 2. Folder Button (Middle - NEW) */
+.lib-folder-btn {
+    border-right: 1px solid var(--card-pill-bg); /* Divider between Folder and Delete */
+}
+.lib-folder-btn svg {
+    color: #8b5cf6; /* A nice purple accent for the Folder icon */
 }
 
-.lib-action-btn:hover {
-    background: var(--card-hover-bg);
+/* 3. Delete Button (Right) */
+.lib-delete-btn svg {
+    color: var(--delete-icon-color);
 }
 
 /* --- Dots Button --- */

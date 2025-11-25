@@ -1,0 +1,234 @@
+/* Main Layout */
+.container {
+  padding: 2rem 3.5rem 3rem;
+  min-height: calc(100vh - 140px);
+  background: #f2d7ee;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.backLink:hover {
+  color: #4a1942;
+}
+
+/* Header Section */
+.header {
+  background: #fff;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(74, 25, 66, 0.05);
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #4a1942;
+  margin: 0;
+}
+
+.subtitle {
+  color: #666;
+  margin-top: 5px;
+  display: flex;
+  gap: 15px;
+  font-size: 0.95rem;
+}
+
+.codeBadge {
+  background: #f0c9ff;
+  color: #4a1942;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* Action Buttons in Header */
+.headerActions {
+  display: flex;
+  gap: 10px;
+}
+
+.primaryBtn {
+  background: #4a1942;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(74, 25, 66, 0.2);
+  transition: transform 0.1s;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 2px solid rgba(74, 25, 66, 0.1);
+  margin-bottom: 2rem;
+}
+
+.tab {
+  padding: 0.8rem 0.5rem;
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+}
+
+.activeTab {
+  color: #4a1942;
+}
+
+.activeTab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #4a1942;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Content Grid (Reusing your dashboard grid style) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Card Styles */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.2rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(74, 25, 66, 0.1);
+}
+
+.cardIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #f3e8ff;
+  color: #7e22ce;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: #2b1027;
+  font-size: 1rem;
+}
+
+.cardMeta {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Student List Styling */
+.studentList {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.studentRow {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.studentRow:last-child {
+  border-bottom: none;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  background: #f0c9ff;
+  color: #4a1942;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-right: 15px;
+}
+
+.studentInfo {
+  flex: 1;
+}
+
+.studentName {
+  font-weight: 600;
+  color: #2b1027;
+  display: block;
+}
+
+.studentEmail {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.removeBtn {
+  color: #d32f2f;
+  background: #ffebee;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* Empty States */
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+  background: rgba(255,255,255,0.5);
+  border-radius: 20px;
+}

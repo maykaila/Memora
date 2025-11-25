@@ -2,20 +2,24 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Plus, User } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../initializeFirebase"; 
 import styles from "./LISidebarHeader.module.css";
+// 1. Import the existing component (which is now a modal)
+import FolderCreator from "./FolderCreator";
 
-// 1. Define the interface for props
 interface LoggedInHeaderProps {
-  role?: "student" | "teacher"; // Optional prop
+  role?: "student" | "teacher";
 }
 
-// 2. Accept the prop (default to 'student' if missing)
 export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  
+  // 2. State for the folder popup
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -29,7 +33,6 @@ export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps
     setAddOpen(false);
   };
 
-  // 3. Update the routing logic based on the role
   const goToFlashcard = () => {
     setAddOpen(false);
     if (role === "teacher") {
@@ -39,13 +42,10 @@ export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps
     }
   };
 
+  // 3. Update: Open Modal instead of redirecting
   const handleFolder = () => {
     setAddOpen(false);
-    if (role === "teacher") {
-      router.push("/teacher-createFolder");
-    } else {
-      router.push("/createFolder");
-    }
+    setShowFolderModal(true); 
   };
 
   const handleProfileClick = () => {
@@ -63,6 +63,7 @@ export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps
     }
   };
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (!menuRef.current) return;
@@ -79,80 +80,95 @@ export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps
   }, [addOpen, profileOpen]);
 
   return (
-    <header className={styles.header}>
-      <div className={styles.searchWrapper}>
-        <Search size={18} />
-        <input
-          type="text"
-          placeholder="Search for titles, authors, categories..."
-          className={styles.searchInput}
-        />
-      </div>
+    <>
+      {/* 4. Render the Modal here */}
+      <FolderCreator 
+        isOpen={showFolderModal} 
+        onClose={() => setShowFolderModal(false)} 
+        onSuccess={() => {
+            // Simple refresh to ensure the new folder shows up on the dashboard
+            window.location.reload(); 
+        }}
+        role={role}
+      />
 
-      <div className={styles.headerActions} ref={menuRef}>
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            className={styles.plusButton}
-            onClick={toggleAddMenu}
-            aria-haspopup="true"
-            aria-expanded={addOpen}
-          >
-            <Plus size={20} />
-          </button>
-
-          {addOpen && (
-            <div className={styles.addMenu}>
-              <button
-                type="button"
-                className={styles.addMenuItem}
-                onClick={goToFlashcard}
-              >
-                Flashcard
-              </button>
-              <div className={styles.addMenuDivider} />
-              <button
-                type="button"
-                className={styles.addMenuItem}
-                onClick={handleFolder}
-              >
-                Folder
-              </button>
-            </div>
-          )}
+      <header className={styles.header}>
+        <div className={styles.searchWrapper}>
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Search for titles, authors, categories..."
+            className={styles.searchInput}
+          />
         </div>
 
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            className={styles.userButton}
-            onClick={toggleProfileMenu}
-            aria-haspopup="true"
-            aria-expanded={profileOpen}
-          >
-            <span className={styles.userInitial}>A</span>
-          </button>
+        <div className={styles.headerActions} ref={menuRef}>
+          {/* PLUS BUTTON */}
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              className={styles.plusButton}
+              onClick={toggleAddMenu}
+              aria-haspopup="true"
+              aria-expanded={addOpen}
+            >
+              <Plus size={20} />
+            </button>
 
-          {profileOpen && (
-            <div className={styles.profileMenu}>
-              <button
-                type="button"
-                className={styles.profileMenuItem}
-                onClick={handleProfileClick}
-              >
-                Profile
-              </button>
-              <button
-                type="button"
-                className={styles.profileMenuItem}
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </div>
-          )}
+            {addOpen && (
+              <div className={styles.addMenu}>
+                <button
+                  type="button"
+                  className={styles.addMenuItem}
+                  onClick={goToFlashcard}
+                >
+                  Flashcard
+                </button>
+                <div className={styles.addMenuDivider} />
+                <button
+                  type="button"
+                  className={styles.addMenuItem}
+                  onClick={handleFolder}
+                >
+                  Folder
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* PROFILE BUTTON */}
+          <div style={{ position: "relative" }}>
+            <button
+              type="button"
+              className={styles.userButton}
+              onClick={toggleProfileMenu}
+              aria-haspopup="true"
+              aria-expanded={profileOpen}
+            >
+              <span className={styles.userInitial}>A</span>
+            </button>
+
+            {profileOpen && (
+              <div className={styles.profileMenu}>
+                <button
+                  type="button"
+                  className={styles.profileMenuItem}
+                  onClick={handleProfileClick}
+                >
+                  Profile
+                </button>
+                <button
+                  type="button"
+                  className={styles.profileMenuItem}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }

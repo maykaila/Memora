@@ -1,13 +1,13 @@
 /* -------------------------------------
-    A. Main Content Wrapper (ONLY)
+   A. Main Content Wrapper (ONLY)
 ------------------------------------- */
 
 .lib-main-content-only {
     flex-grow: 1;
     color: var(--primary-text);
     min-height: calc(100vh - 120px);;
-    background-color: var(--primary-bg); /* Retains the light background color */
-    padding-top: 60px; /* Placeholder space for the removed global header if needed */
+    background-color: var(--primary-bg);
+    padding-top: 60px;
 }
 
 .lib-content-wrapper {
@@ -24,7 +24,7 @@
 }
 
 /* -------------------------------------
-    B. Local Library Search + Actions Row
+   B. Local Library Search + Actions Row
 ------------------------------------- */
 
 .lib-top-row {
@@ -87,7 +87,7 @@
 }
 
 /* -------------------------------------
-    C. Deck Card List (Individual Sets)
+   C. Deck Card List (Individual Sets)
 ------------------------------------- */
 
 .lib-list {
@@ -107,6 +107,8 @@
     transition: background-color 0.15s;
     position: relative;
     cursor: pointer;
+    /* Ensure z-index is managed so menu can float */
+    z-index: 1;
 }
 
 .lib-card:hover {
@@ -162,55 +164,79 @@
 }
 
 .lib-card-actions {
-    position: relative;
+    position: relative; /* Essential for the absolute menu positioning */
     flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* --- Inline Edit/Delete Menu --- */
+/* --- VERTICAL DROPDOWN MENU --- */
 .lib-popup-menu-inline {
     display: flex;
-    align-items: center;
-    background-color: var(--card-bg); 
+    flex-direction: column; /* Stack items vertically */
+    
+    position: absolute;
+    top: 40px; /* Push it below the dots button */
+    right: 0;  /* Align to the right edge */
+    
+    background-color:  #dfbff7; /* Needs solid background to cover content below */
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for floating effect */
     border: 1px solid var(--card-pill-bg);
-    margin-right: 15px; 
+    
+    min-width: 160px; /* Ensure it's wide enough to read */
+    z-index: 100; /* Ensure it floats ON TOP of other cards */
+    overflow: hidden;
 }
 
 .lib-action-btn {
-    padding: 8px 12px;
+    padding: 12px 15px; /* Larger click area for vertical list */
     border: none;
     background: none;
     cursor: pointer;
     font-size: 0.95rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--primary-text);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 10px;
+    width: 100%; /* Fill the full width of the dropdown */
+    text-align: left;
     transition: background 0.15s ease;
-    white-space: nowrap;
+    
+    /* Horizontal divider lines */
+    border-bottom: 1px solid var(--accent-light);
 }
 
-.lib-edit-btn {
-    border-right: 1px solid var(--card-pill-bg);
+/* Remove side borders since it's vertical now */
+.lib-edit-btn, .lib-folder-btn {
+    border-right: none;
+}
+
+/* Remove bottom border from the last item */
+.lib-action-btn:last-child {
+    border-bottom: none;
+}
+
+.lib-action-btn:hover {
+    background: var(--card-hover-bg);
 }
 
 .lib-edit-btn svg {
     color: var(--edit-icon-color);
 }
 
-.lib-delete-btn svg {
-    color: var(--delete-icon-color);
+.lib-folder-btn svg {
+    color: #8b5cf6; 
 }
 
-.lib-action-btn:hover {
-    background: var(--card-hover-bg);
+.lib-delete-btn {
+    color: #ef4444; /* Make text red for delete */
+}
+
+.lib-delete-btn svg {
+    color: #ef4444;
 }
 
 /* --- Dots Button --- */

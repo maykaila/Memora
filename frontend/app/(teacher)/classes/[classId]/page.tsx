@@ -8,7 +8,7 @@ import { auth } from "../../../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "./classDetails.module.css";
 
-// Interfaces matching your data structure
+// Interfaces matching your Backend DTOs
 interface Student {
   uid: string;
   username: string;
@@ -19,7 +19,6 @@ interface Assignment {
   setId: string;
   title: string;
   dateCreated: string;
-  // completionRate?: number; // Only include if your backend calculates this
 }
 
 interface ClassDetails {
@@ -27,14 +26,19 @@ interface ClassDetails {
   className: string;
   classCode: string;
   description?: string;
-  studentIds: string[];
+  
+  // Lists of IDs (Robust for C# PascalCase or camelCase)
+  studentIds?: string[];
+  StudentIds?: string[];
+  
+  assignmentIds?: string[];
+  AssignmentIds?: string[];
 }
 
 export default function ClassDetailsPage({ params }: { params: Promise<{ classId: string }> }) {
   const [classId, setClassId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"assignments" | "students">("assignments");
   
-  // Data States
   const [classData, setClassData] = useState<ClassDetails | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -44,14 +48,12 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
   
   const router = useRouter();
 
-  // 1. Unwrap Params
   useEffect(() => {
     params.then((resolvedParams) => {
       setClassId(resolvedParams.classId);
     });
   }, [params]);
 
-  // 2. Fetch All Data
   useEffect(() => {
     if (!classId) return;
 
@@ -64,43 +66,34 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
             'Authorization': `Bearer ${idToken}` 
           };
 
-          // A. Fetch Class Details (Basic Info)
-          // Note: If you don't have a specific GET /{id} endpoint, we can fetch all and find one, 
-          // but a direct endpoint is better. I'll assume you might add: [HttpGet("{id}")]
+          // A. Fetch Class Details
           const classRes = await fetch(`http://localhost:5261/api/classes/${classId}`, { headers });
-          
           if (classRes.ok) {
             const cData = await classRes.json();
             setClassData(cData);
           } else {
-            // Fallback: Fetch all and filter if single endpoint doesn't exist
+            // Fallback if specific endpoint fails
             const allRes = await fetch(`http://localhost:5261/api/classes/teaching`, { headers });
             if (allRes.ok) {
                 const allData: ClassDetails[] = await allRes.json();
-                const found = allData.find(c => c.classId === classId);
+                const found = allData.find(c => c.classId === classId || (c as any).id === classId);
                 if (found) setClassData(found);
                 else throw new Error("Class not found.");
             }
           }
 
-          // B. Fetch Students
-          // Backend needs an endpoint like: [HttpGet("{classId}/students")]
+          // B. Fetch Students List
           const studentsRes = await fetch(`http://localhost:5261/api/classes/${classId}/students`, { headers });
           if (studentsRes.ok) {
-            setStudents(await studentsRes.json());
-          } else {
-            console.warn("Could not fetch students list (Endpoint might be missing)");
-            setStudents([]); // Default empty
+            const studentsData = await studentsRes.json();
+            setStudents(studentsData);
           }
 
-          // C. Fetch Assignments (Decks assigned to this class)
-          // Backend needs: [HttpGet("{classId}/decks")]
+          // C. Fetch Assignments
           const decksRes = await fetch(`http://localhost:5261/api/classes/${classId}/decks`, { headers });
           if (decksRes.ok) {
-            setAssignments(await decksRes.json());
-          } else {
-            // console.warn("Could not fetch assignments");
-            setAssignments([]); 
+            const decksData = await decksRes.json();
+            setAssignments(decksData);
           }
 
         } catch (err: any) {
@@ -124,14 +117,24 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // Calculate counts safely using the raw ID lists first
+  const studentCount = classData?.studentIds?.length ?? classData?.StudentIds?.length ?? students.length ?? 0;
+  const assignmentCount = classData?.assignmentIds?.length ?? classData?.AssignmentIds?.length ?? assignments.length ?? 0;
+
   if (isLoading) return <div className={styles.container}><p>Loading Class...</p></div>;
   if (error) return <div className={styles.container}><p style={{color:'red'}}>Error: {error}</p></div>;
   if (!classData) return <div className={styles.container}><p>Class not found.</p></div>;
 
   return (
     <div className={styles.container}>
+      <Link href="/teacher-dashboard" className={styles.backLink}>
+        <ArrowLeft size={18} /> Back to Dashboard
+      </Link>
 
-      {/* Header Card */}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>{classData.className}</h1>
@@ -144,20 +147,20 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
               Code: {classData.classCode} <Copy size={14} />
             </span>
             <span>|</span>
-            <span>{students.length} Students</span>
+            {/* UPDATED: Uses robust count logic */}
+            <span>{studentCount} Students</span>
             <span>|</span>
-            <span>{assignments.length} Assignments</span>
+            <span>{assignmentCount} Assignments</span>
           </div>
         </div>
         
         <div className={styles.headerActions}>
-          <button className={styles.primaryBtn}>
+          <button className={styles.primaryBtn} style={{background: '#fff', color: '#4a1942', border: '1px solid #eee'}}>
             <Settings size={18} /> Settings
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
       <div className={styles.tabs}>
         <button 
           className={`${styles.tab} ${activeTab === 'assignments' ? styles.activeTab : ''}`}
@@ -173,10 +176,8 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
         </button>
       </div>
 
-      {/* Content Area */}
       {activeTab === 'assignments' ? (
         <div className={styles.grid}>
-          {/* Add Assignment Button */}
           <div 
             className={styles.card} 
             style={{ border: '2px dashed #d4b4d6', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: '150px' }}
@@ -188,7 +189,6 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
             <div style={{ fontWeight: 'bold', color: '#4a1942', marginTop: '10px' }}>Assign New Deck</div>
           </div>
 
-          {/* Assignment List */}
           {assignments.map((assign) => (
             <Link href={`/overviewOfCards?id=${assign.setId}`} key={assign.setId} className={styles.card}>
               <div className={styles.cardIcon}>
@@ -197,8 +197,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
               <div>
                 <div className={styles.cardTitle}>{assign.title}</div>
                 <div className={styles.cardMeta}>
-                  {/* Removed completion rate since backend might not have it yet */}
-                  Assigned: {new Date(assign.dateCreated).toLocaleDateString()}
+                  Assigned: {formatDate(assign.dateCreated)}
                 </div>
               </div>
             </Link>
@@ -207,12 +206,17 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
       ) : (
         <div className={styles.studentList}>
           {students.length === 0 ? (
-            <div className={styles.emptyState}>No students have joined yet. Share the code <b>{classData.classCode}</b>!</div>
+            <div className={styles.emptyState}>
+                {/* Helpful message if count > 0 but list is empty (loading error) */}
+                {studentCount > 0 
+                    ? "Students joined, but details could not be loaded."
+                    : <span>No students have joined yet. Share the code <b>{classData.classCode}</b>!</span>
+                }
+            </div>
           ) : (
             students.map((student) => (
               <div key={student.uid} className={styles.studentRow}>
                 <div className={styles.avatar}>
-                  {/* Safe check for username */}
                   {(student.username || "?").charAt(0).toUpperCase()}
                 </div>
                 <div className={styles.studentInfo}>

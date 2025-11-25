@@ -6,8 +6,8 @@
     flex-grow: 1;
     color: var(--primary-text);
     min-height: calc(100vh - 120px);;
-    background-color: var(--primary-bg);
-    padding-top: 60px;
+    background-color: var(--primary-bg); /* Retains the light background color */
+    padding-top: 60px; /* Placeholder space for the removed global header if needed */
 }
 
 .lib-content-wrapper {
@@ -107,8 +107,6 @@
     transition: background-color 0.15s;
     position: relative;
     cursor: pointer;
-    /* Ensure z-index is managed so menu can float */
-    z-index: 1;
 }
 
 .lib-card:hover {
@@ -164,79 +162,66 @@
 }
 
 .lib-card-actions {
-    position: relative; /* Essential for the absolute menu positioning */
+    position: relative;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-/* --- VERTICAL DROPDOWN MENU --- */
+
+/* inline horizontal type
+/* --- Inline Edit/Folder/Delete Menu --- */
 .lib-popup-menu-inline {
     display: flex;
-    flex-direction: column; /* Stack items vertically */
-    
-    position: absolute;
-    top: 40px; /* Push it below the dots button */
-    right: 0;  /* Align to the right edge */
-    
-    background-color:  #dfbff7; /* Needs solid background to cover content below */
+    align-items: center;
+    background-color: var(--card-bg); 
     border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Stronger shadow for floating effect */
-    border: 1px solid var(--card-pill-bg);
-    
-    min-width: 160px; /* Ensure it's wide enough to read */
-    z-index: 100; /* Ensure it floats ON TOP of other cards */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     overflow: hidden;
+    z-index: 10;
+    border: 1px solid var(--card-pill-bg);
+    margin-right: 15px; 
 }
 
 .lib-action-btn {
-    padding: 12px 15px; /* Larger click area for vertical list */
+    padding: 8px 12px;
     border: none;
     background: none;
     cursor: pointer;
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--primary-text);
     display: flex;
     align-items: center;
-    gap: 10px;
-    width: 100%; /* Fill the full width of the dropdown */
-    text-align: left;
+    gap: 5px;
     transition: background 0.15s ease;
-    
-    /* Horizontal divider lines */
-    border-bottom: 1px solid var(--accent-light);
-}
-
-/* Remove side borders since it's vertical now */
-.lib-edit-btn, .lib-folder-btn {
-    border-right: none;
-}
-
-/* Remove bottom border from the last item */
-.lib-action-btn:last-child {
-    border-bottom: none;
+    white-space: nowrap;
 }
 
 .lib-action-btn:hover {
     background: var(--card-hover-bg);
 }
 
+/* 1. Edit Button (Left) */
+.lib-edit-btn {
+    border-right: 1px solid var(--card-pill-bg);
+}
 .lib-edit-btn svg {
     color: var(--edit-icon-color);
 }
 
+/* 2. Folder Button (Middle - NEW) */
+.lib-folder-btn {
+    border-right: 1px solid var(--card-pill-bg); /* Divider between Folder and Delete */
+}
 .lib-folder-btn svg {
-    color: #8b5cf6; 
+    color: #8b5cf6; /* A nice purple accent for the Folder icon */
 }
 
-.lib-delete-btn {
-    color: #ef4444; /* Make text red for delete */
-}
-
+/* 3. Delete Button (Right) */
 .lib-delete-btn svg {
-    color: #ef4444;
+    color: var(--delete-icon-color);
 }
 
 /* --- Dots Button --- */

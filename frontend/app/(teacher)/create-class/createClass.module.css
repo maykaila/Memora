@@ -1,0 +1,191 @@
+/* Using global variables from app/globals.css */
+
+.page {
+  padding: 40px;
+  width: 100%;
+  margin: 0 auto;
+  font-family: inherit;
+  color: var(--primary-text);
+  
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* Center horizontally too for this page */
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px; 
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--muted-text);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0;
+  transition: color 0.2s;
+  align-self: flex-start; 
+  max-width: 600px; /* Align with card width */
+  width: 100%;
+}
+
+.backButton:hover {
+  text-decoration: underline;
+  color: var(--primary-text);
+}
+
+.card {
+  background-color: var(--card-bg);
+  padding: 50px; 
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); 
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  width: 100%; 
+  max-width: 600px; /* Keep it focused like a modal */
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px; 
+  margin-bottom: 40px; 
+}
+
+.iconWrapper {
+  width: 64px; 
+  height: 64px;
+  background-color: #dcfce7; /* Light green for classes */
+  border-radius: 20px;
+  color: #166534; /* Dark green */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 2rem; 
+  font-weight: 800;
+  color: var(--primary-text);
+  margin: 0;
+  line-height: 1;
+}
+
+.formGroup {
+  margin-bottom: 30px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: var(--primary-text);
+  font-size: 1.05rem;
+}
+
+.input {
+  width: 100%;
+  padding: 16px 20px; 
+  font-size: 1.1rem; 
+  border-radius: 14px;
+  border: 1px solid var(--accent-dark);
+  background-color: #fff;
+  color: var(--primary-text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.input:focus {
+  border-color: var(--edit-icon-color);
+  box-shadow: 0 0 0 4px rgba(121, 82, 179, 0.15);
+}
+
+.actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.cancelButton {
+  padding: 14px 28px; 
+  border-radius: 12px;
+  border: 1px solid var(--button-outline-border);
+  background-color: transparent;
+  color: var(--button-outline-border);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background-color: rgba(106, 64, 99, 0.05);
+}
+
+.submitButton {
+  padding: 14px 32px; 
+  border-radius: 12px;
+  border: none;
+  background-color: var(--button-solid-bg);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(74, 25, 66, 0.25);
+  transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  opacity: 0.95;
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: var(--muted-text);
+}
+
+/* --- Success State Styles --- */
+
+.successState {
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.successTitle {
+  color: #166534; /* Green */
+  margin-bottom: 10px;
+}
+
+.successText {
+  color: var(--muted-text);
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+.codeBox {
+  background-color: #f0fdf4; /* Very light green */
+  border: 2px dashed #166534;
+  color: #166534;
+  font-size: 3rem;
+  font-weight: 900;
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  letter-spacing: 4px;
+  font-family: monospace;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

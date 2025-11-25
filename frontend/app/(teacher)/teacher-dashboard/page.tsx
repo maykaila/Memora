@@ -4,10 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../initializeFirebase";
-import { Users, BookOpen, PlusCircle, GraduationCap, Folder } from "lucide-react"; 
+import { Users, BookOpen, PlusCircle, GraduationCap, Folder, Hash } from "lucide-react"; 
 import Link from "next/link"; 
 import styles from "../../components/dashboardLayout.module.css"; 
-// IMPORT YOUR EXISTING COMPONENT
 import FolderCreator from "../../components/FolderCreator";
 
 interface FlashcardSet {
@@ -25,11 +24,12 @@ interface FolderItem {
   itemCount: number;
 }
 
+// Updated to match your C# Class Model
 interface ClassItem {
-  id: string;
-  name: string;
-  studentCount: number;
-  deckCount: number;
+  classId: string;
+  className: string;
+  classCode: string;
+  studentIds: string[];
 }
 
 export default function TeacherDashboard() {
@@ -56,6 +56,7 @@ export default function TeacherDashboard() {
         try {
           const idToken = await user.getIdToken();
           
+          // 1. Fetch Decks
           const myResponse = await fetch('http://localhost:5261/api/flashcardsets/my-sets', {
             headers: { 'Authorization': `Bearer ${idToken}` },
           });
@@ -65,13 +66,21 @@ export default function TeacherDashboard() {
             setMySets(data);
           }
 
+          // 2. Fetch Folders
           await fetchFoldersData(user);
 
-          setClasses([
-            { id: '1', name: 'Biology 101 - Period 1', studentCount: 24, deckCount: 3 },
-            { id: '2', name: 'Adv. Chemistry', studentCount: 18, deckCount: 5 },
-            { id: '3', name: 'Homeroom', studentCount: 30, deckCount: 0 },
-          ]);
+          // 3. Fetch Classes (REAL DATA)
+          const classesResponse = await fetch('http://localhost:5261/api/classes/teaching', {
+            headers: { 'Authorization': `Bearer ${idToken}` },
+          });
+          
+          if (classesResponse.ok) {
+            const classData = await classesResponse.json();
+            setClasses(classData);
+          } else {
+            console.error("Failed to fetch classes");
+             setClasses([]);
+          }
 
         } catch (err) {
           console.error("Teacher Dashboard Load Error:", err);
@@ -98,24 +107,60 @@ export default function TeacherDashboard() {
   };
 
   const renderClasses = () => {
-    if (classes.length === 0) return <div className={styles.emptyText}>No active classes.</div>;
+    if (classes.length === 0) {
+      return (
+        <div className={styles.recentsGrid}>
+           {/* UPDATED LINK: Points to /create-class */}
+           <Link href="/create-class" className={styles.standardCard} style={{ borderStyle: 'dashed', background: 'transparent', borderColor: '#4a1942', justifyContent: 'center' }}>
+              <div className={`${styles.iconBox}`} style={{background: 'transparent', color: '#4a1942'}}>
+                 <PlusCircle size={20} />
+              </div>
+              <div className={styles.cardTitle}>Add Your First Class</div>
+          </Link>
+        </div>
+      );
+    }
 
     return (
       <div className={styles.recentsGrid}>
         {classes.map((cls) => (
-          <Link href={`/classes/${cls.id}`} key={cls.id} className={styles.standardCard}>
+          <Link href={`/classes/${cls.classId}`} key={cls.classId} className={styles.standardCard}>
             <div className={`${styles.iconBox} ${styles.iconGreen}`}>
               <Users size={20} />
             </div>
-            <div>
-              <div className={styles.cardTitle}>{cls.name}</div>
-              <div className={styles.cardMeta}>
-                  {cls.studentCount} Students • {cls.deckCount} Decks
+            <div style={{ flex: 1 }}>
+              <div className={styles.cardTitle} style={{ fontSize: '1.1rem' }}>{cls.className}</div>
+              
+              <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                
+                <div className={styles.cardMeta}>
+                   {cls.studentIds?.length || 0} Students
+                </div>
+
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    marginTop: '4px',
+                    fontSize: '0.85rem',
+                    color: '#4a1942', 
+                    fontWeight: 'bold',
+                    backgroundColor: 'rgba(74, 25, 66, 0.05)',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    width: 'fit-content'
+                }}>
+                    <Hash size={14} /> 
+                    <span>Code: {cls.classCode}</span>
+                </div>
+
               </div>
             </div>
           </Link>
         ))}
-        <Link href="/classes" className={styles.standardCard} style={{ borderStyle: 'dashed', background: 'transparent', borderColor: '#4a1942' }}>
+        
+        {/* UPDATED LINK: Points to /create-class */}
+        <Link href="/create-class" className={styles.standardCard} style={{ borderStyle: 'dashed', background: 'transparent', borderColor: '#4a1942' }}>
             <div className={`${styles.iconBox}`} style={{background: 'transparent', color: '#4a1942'}}>
                <PlusCircle size={20} />
             </div>
@@ -199,7 +244,8 @@ export default function TeacherDashboard() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Active Classes</h2>
-            <Link href="/classes" className={styles.actionLink}>Manage Classes</Link>
+            {/* UPDATED LINK: Points to /create-class */}
+            <Link href="/create-class" className={styles.actionLink}>+ New Class</Link>
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderClasses()}
       </section>

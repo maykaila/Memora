@@ -76,24 +76,6 @@ namespace Memora.Controllers
 
         // --- NEW ENDPOINTS FOR CLASS DETAILS PAGE ---
 
-        [HttpGet("joined")]
-        public async Task<IActionResult> GetJoinedClasses()
-        {
-            try
-            {
-                string? userId = await GetUserIdFromTokenAsync();
-                if (userId == null) return Unauthorized();
-
-                // This calls the service method to get classes where student_ids contains userId
-                var classes = await _classService.GetClassesForStudentAsync(userId);
-                return Ok(classes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         // 4. Get Single Class Details
         [HttpGet("{classId}")]
         public async Task<IActionResult> GetClassById(string classId)

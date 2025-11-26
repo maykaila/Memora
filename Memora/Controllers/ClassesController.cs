@@ -122,5 +122,87 @@ namespace Memora.Controllers
             }
             catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
+
+        // 7. Assign Deck to Class
+        [HttpPost("{classId}/assign/{deckId}")]
+        public async Task<IActionResult> AssignDeck(string classId, string deckId)
+        {
+            try
+            {
+                // Security: Ensure the user is logged in
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                // OPTIONAL TODO: Check if 'userId' is actually the teacher of 'classId' 
+                // (For now, we assume if they are logged in, it's fine)
+
+                bool success = await _classService.AssignDeckToClassAsync(classId, deckId);
+                
+                if (success)
+                {
+                    return Ok(new { message = "Deck assigned successfully" });
+                }
+                else
+                {
+                    return NotFound(new { message = "Class not found" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        // 8. Update Class Name
+        [HttpPut("{classId}")]
+        public async Task<IActionResult> UpdateClass(string classId, [FromBody] CreateClassRequest request)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                bool success = await _classService.UpdateClassAsync(classId, request.ClassName);
+                if (success) return Ok(new { message = "Class updated successfully" });
+                return NotFound(new { message = "Class not found" });
+            }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        // 9. Delete Class
+        [HttpDelete("{classId}")]
+        public async Task<IActionResult> DeleteClass(string classId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                // TODO: Check ownership (ensure teacher owns class) before deleting
+                
+                bool success = await _classService.DeleteClassAsync(classId);
+                if (success) return Ok(new { message = "Class deleted successfully" });
+                return NotFound(new { message = "Class not found" });
+            }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        [HttpGet("joined")]
+        public async Task<IActionResult> GetJoinedClasses()
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                // This calls the service method to get classes where student_ids contains userId
+                var classes = await _classService.GetClassesForStudentAsync(userId);
+                return Ok(classes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

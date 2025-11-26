@@ -86,7 +86,7 @@ namespace Memora.Services
             return snapshot.Documents.Select(doc => doc.ConvertTo<Class>()).ToList();
         }
 
-        // 1. Get Single Class
+        // Get Single Class
         public async Task<Class?> GetClassByIdAsync(string classId)
         {
             DocumentSnapshot snap = await _db.Collection("classes").Document(classId).GetSnapshotAsync();
@@ -97,7 +97,7 @@ namespace Memora.Services
             return null;
         }
 
-        // 2. Get Students
+        // Get Students
         public async Task<List<User>> GetStudentsInClassAsync(string classId)
         {
             // First get the class to see the StudentIds list
@@ -120,29 +120,34 @@ namespace Memora.Services
             return students;
         }
 
-        // 3. Get Decks (Assignments)
+        // Assign Deck to Class (WRITE)
+        public async Task<bool> AssignDeckToClassAsync(string classId, string deckId)
+        {
+            DocumentReference classRef = _classesCollection.Document(classId);
+            DocumentSnapshot snap = await classRef.GetSnapshotAsync();
+
+            if (!snap.Exists) return false;
+
+            // Use ArrayUnion to safely add the ID to the list without duplicates
+            await classRef.UpdateAsync("assignment_ids", FieldValue.ArrayUnion(deckId));
+
+            return true;
+        }
+
+        // Get Decks in Class (READ)
         public async Task<List<FlashcardSet>> GetDecksInClassAsync(string classId)
         {
-            // NOTE: This assumes you added 'AssignmentIds' to your Class model.
-            // If you haven't, this will just return empty for now.
-            
-            /* To make this work, add this to Class.cs: 
-               [FirestoreProperty("assignment_ids")]
-               public List<string> AssignmentIds { get; set; } = new List<string>();
-            */
-
             Class? cls = await GetClassByIdAsync(classId);
-            // Check if property exists (it might fail if you haven't updated Model yet)
-            // For now, let's return empty to prevent crash if you haven't updated Model
-            return new List<FlashcardSet>(); 
             
-            /* UNCOMMENT THIS ONCE YOU UPDATE CLASS MODEL
+            // Check if property exists and has items
             if (cls == null || cls.AssignmentIds == null || cls.AssignmentIds.Count == 0) 
                 return new List<FlashcardSet>();
 
             List<FlashcardSet> decks = new List<FlashcardSet>();
+            
             foreach (string deckId in cls.AssignmentIds)
             {
+                // Assuming your collection is named "flashcardSets"
                 DocumentSnapshot deckSnap = await _db.Collection("flashcardSets").Document(deckId).GetSnapshotAsync();
                 if (deckSnap.Exists)
                 {
@@ -150,9 +155,28 @@ namespace Memora.Services
                 }
             }
             return decks;
-            */
         }
 
-        
+        // Update Class Name
+        public async Task<bool> UpdateClassAsync(string classId, string newName)
+        {
+            DocumentReference docRef = _classesCollection.Document(classId);
+            DocumentSnapshot snap = await docRef.GetSnapshotAsync();
+            if (!snap.Exists) return false;
+
+            await docRef.UpdateAsync("class_name", newName);
+            return true;
+        }
+
+        // Delete Class
+        public async Task<bool> DeleteClassAsync(string classId)
+        {
+            DocumentReference docRef = _classesCollection.Document(classId);
+            DocumentSnapshot snap = await docRef.GetSnapshotAsync();
+            if (!snap.Exists) return false;
+
+            await docRef.DeleteAsync();
+            return true;
+        }
     }
 }

@@ -13,5 +13,8 @@ namespace Memora.Services
         // For the student side of classes
         Task<bool> JoinClassAsync(string studentId, string classCode);
         Task<IEnumerable<Class>> GetClassesForStudentAsync(string studentId);
+        Task<Class?> GetClassByIdAsync(string classId);
+        Task<List<User>> GetStudentsInClassAsync(string classId);
+        Task<List<FlashcardSet>> GetDecksInClassAsync(string classId);
     }
 }

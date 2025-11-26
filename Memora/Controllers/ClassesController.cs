@@ -31,7 +31,7 @@ namespace Memora.Controllers
             return null;
         }
 
-        // Teacher creates a class -> Gets back the code
+        // 1. Create Class
         [HttpPost] 
         public async Task<IActionResult> CreateClass([FromBody] CreateClassRequest request)
         {
@@ -39,19 +39,13 @@ namespace Memora.Controllers
             {
                 string? userId = await GetUserIdFromTokenAsync();
                 if (userId == null) return Unauthorized();
-
-                // Check role here if you want (ensure only teachers can create)
-                
                 var newClass = await _classService.CreateClassAsync(userId, request);
-                return Ok(newClass); // The response contains the ClassCode!
+                return Ok(newClass);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
 
-        // Teacher gets their classes
+        // 2. Get Teacher's Classes
         [HttpGet("teaching")]
         public async Task<IActionResult> GetMyClasses()
         {
@@ -59,17 +53,13 @@ namespace Memora.Controllers
             {
                 string? userId = await GetUserIdFromTokenAsync();
                 if (userId == null) return Unauthorized();
-
                 var classes = await _classService.GetClassesForTeacherAsync(userId);
                 return Ok(classes);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
 
-        // Student joins a class
+        // 3. Join Class
         [HttpPost("join/{classCode}")]
         public async Task<IActionResult> JoinClass(string classCode)
         {
@@ -77,34 +67,60 @@ namespace Memora.Controllers
             {
                 string? userId = await GetUserIdFromTokenAsync();
                 if (userId == null) return Unauthorized();
-
                 bool success = await _classService.JoinClassAsync(userId, classCode);
-                
                 if (success) return Ok(new { message = "Successfully joined class!" });
                 return NotFound(new { message = "Invalid class code." });
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
 
-        [HttpGet("joined")]
-        public async Task<IActionResult> GetJoinedClasses()
+        // --- NEW ENDPOINTS FOR CLASS DETAILS PAGE ---
+
+        // 4. Get Single Class Details
+        [HttpGet("{classId}")]
+        public async Task<IActionResult> GetClassById(string classId)
         {
             try
             {
                 string? userId = await GetUserIdFromTokenAsync();
                 if (userId == null) return Unauthorized();
 
-                // This calls the service method to get classes where student_ids contains userId
-                var classes = await _classService.GetClassesForStudentAsync(userId);
-                return Ok(classes);
+                var classObj = await _classService.GetClassByIdAsync(classId);
+                if (classObj == null) return NotFound(new { message = "Class not found" });
+
+                return Ok(classObj);
             }
-            catch (Exception ex)
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        // 5. Get Students in Class
+        [HttpGet("{classId}/students")]
+        public async Task<IActionResult> GetStudentsInClass(string classId)
+        {
+            try
             {
-                return StatusCode(500, new { message = ex.Message });
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                var students = await _classService.GetStudentsInClassAsync(classId);
+                return Ok(students);
             }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
+        }
+
+        // 6. Get Decks (Assignments) in Class
+        [HttpGet("{classId}/decks")]
+        public async Task<IActionResult> GetDecksInClass(string classId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                var decks = await _classService.GetDecksInClassAsync(classId);
+                return Ok(decks);
+            }
+            catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
     }
 }

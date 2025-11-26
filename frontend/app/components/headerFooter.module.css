@@ -12,26 +12,40 @@
 
 /* Inner wrapper for consistent width */
 .navbarInner {
-  max-width: 500x;
-  margin: 0 auto;
-  padding: 0.8rem 1.5rem;
+  max-width: 1500px; /* Changed from 500x (typo?) to standard width */
+  margin: 0 20px;
+  padding: 0.8rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* Ensure it never wraps */
+  flex-wrap: nowrap; 
+}
+
+/* Logo (assuming you have a class for it, based on your image) */
+.logo {
+  font-family: sans-serif; /* Or your specific font */
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: #e1b7ff;
+  white-space: nowrap; /* Prevents logo text from wrapping */
 }
 
 .links {
   display: flex;
   gap: 1.25rem;
   align-items: center;
+  /* Prevent links from wrapping to next line */
+  flex-wrap: nowrap; 
 }
 
 .link {
   color: #faffee;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600; /* Slightly bolder for readability */
   font-size: 15px;
   transition: all 0.2s ease;
+  white-space: nowrap; /* Keeps "Sign Up" on one line */
 }
 
 .link:hover,
@@ -43,10 +57,11 @@
 .signupButton {
   background: #ffffff;
   color: #4a1942;
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  border-radius: 12px;
+  font-weight: 700;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px; /* Increased radius to match pill shape in image */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  white-space: nowrap; /* Critical for buttons */
 }
 
 .signupButton:hover {
@@ -56,17 +71,21 @@
 }
 
 /* --- Mobile adjustments --- */
-@media (max-width: 600px) {
+/* Instead of stacking, we just reduce padding/gap to make it fit */
+@media (max-width: 900px) {
   .navbarInner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
+    padding: 0.8rem 1rem; /* Slightly tighter padding */
+    flex-direction: row;  /* FORCE ROW DIRECTION */
+    align-items: center;
   }
 
   .links {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.8rem;
+    gap: 0.8rem; /* Reduce gap between Login and Sign Up */
+  }
+  
+  .signupButton {
+    padding: 0.4rem 1rem; /* Slightly smaller button on mobile */
+    font-size: 0.9rem;
   }
 }
 
@@ -81,8 +100,7 @@
   text-align: center;
   padding: 1rem 0;
   box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.08);
-  position: relative;
-  bottom: 0;
+  /* position: relative; bottom: 0; <- Removed 'bottom: 0' as it can cause layout issues */
 }
 
 .footer a {

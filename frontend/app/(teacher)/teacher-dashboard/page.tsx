@@ -4,11 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../initializeFirebase";
-import { Users, BookOpen, PlusCircle, GraduationCap, Folder } from "lucide-react"; 
+import { Users, BookOpen, PlusCircle, GraduationCap, Folder, Hash } from "lucide-react"; 
 import Link from "next/link"; 
 import styles from "../../components/dashboardLayout.module.css"; 
-// IMPORT YOUR EXISTING COMPONENT
 import FolderCreator from "../../components/FolderCreator";
+import CreateClassModal from "../../components/teacher/CreateClassModal"; // 1. Import the Modal
 
 interface FlashcardSet {
   setId: string;
@@ -25,11 +25,12 @@ interface FolderItem {
   itemCount: number;
 }
 
+// Updated to match your C# Class Model
 interface ClassItem {
-  id: string;
-  name: string;
-  studentCount: number;
-  deckCount: number;
+  classId: string;
+  className: string;
+  classCode: string;
+  studentIds: string[];
 }
 
 export default function TeacherDashboard() {
@@ -37,7 +38,11 @@ export default function TeacherDashboard() {
   const [folders, setFolders] = useState<FolderItem[]>([]);
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal States
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [isClassModalOpen, setIsClassModalOpen] = useState(false); // 2. Add Modal State
+
   const router = useRouter();
 
   const fetchFoldersData = useCallback(async (user: any) => {
@@ -50,12 +55,29 @@ export default function TeacherDashboard() {
     }
   }, []);
 
+  // 3. Refactor Class Fetching to reusable function
+  const fetchClassesData = useCallback(async (user: any) => {
+    const idToken = await user.getIdToken();
+    const classesResponse = await fetch('http://localhost:5261/api/classes/teaching', {
+        headers: { 'Authorization': `Bearer ${idToken}` },
+    });
+    
+    if (classesResponse.ok) {
+        const classData = await classesResponse.json();
+        setClasses(classData);
+    } else {
+        console.error("Failed to fetch classes");
+        setClasses([]);
+    }
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           const idToken = await user.getIdToken();
           
+          // 1. Fetch Decks
           const myResponse = await fetch('http://localhost:5261/api/flashcardsets/my-sets', {
             headers: { 'Authorization': `Bearer ${idToken}` },
           });
@@ -65,13 +87,11 @@ export default function TeacherDashboard() {
             setMySets(data);
           }
 
+          // 2. Fetch Folders
           await fetchFoldersData(user);
 
-          setClasses([
-            { id: '1', name: 'Biology 101 - Period 1', studentCount: 24, deckCount: 3 },
-            { id: '2', name: 'Adv. Chemistry', studentCount: 18, deckCount: 5 },
-            { id: '3', name: 'Homeroom', studentCount: 30, deckCount: 0 },
-          ]);
+          // 3. Fetch Classes (Using refactored function)
+          await fetchClassesData(user);
 
         } catch (err) {
           console.error("Teacher Dashboard Load Error:", err);
@@ -83,11 +103,18 @@ export default function TeacherDashboard() {
       }
     });
     return () => unsubscribe();
-  }, [router, fetchFoldersData]);
+  }, [router, fetchFoldersData, fetchClassesData]);
 
   const refreshFolders = async () => {
     if (auth.currentUser) {
       await fetchFoldersData(auth.currentUser);
+    }
+  };
+
+  // 4. Refresh function for Classes
+  const refreshClasses = async () => {
+    if (auth.currentUser) {
+        await fetchClassesData(auth.currentUser);
     }
   };
 
@@ -98,29 +125,76 @@ export default function TeacherDashboard() {
   };
 
   const renderClasses = () => {
-    if (classes.length === 0) return <div className={styles.emptyText}>No active classes.</div>;
+    if (classes.length === 0) {
+      return (
+        <div className={styles.recentsGrid}>
+           {/* Updated to Button opening Modal */}
+           <button 
+             onClick={() => setIsClassModalOpen(true)}
+             className={styles.standardCard} 
+             style={{ borderStyle: 'dashed', background: 'transparent', borderColor: '#4a1942', justifyContent: 'center', cursor: 'pointer', width: '100%' }}
+           >
+              <div className={`${styles.iconBox}`} style={{background: 'transparent', color: '#4a1942'}}>
+                 <PlusCircle size={20} />
+              </div>
+              <div className={styles.cardTitle}>Add Your First Class</div>
+           </button>
+        </div>
+      );
+    }
+
+    // LIMIT TO 3 ITEMS
+    const visibleClasses = classes.slice(0, 3);
 
     return (
       <div className={styles.recentsGrid}>
-        {classes.map((cls) => (
-          <Link href={`/classes/${cls.id}`} key={cls.id} className={styles.standardCard}>
+        {visibleClasses.map((cls) => (
+          <Link href={`/classes/${cls.classId}`} key={cls.classId} className={styles.standardCard}>
             <div className={`${styles.iconBox} ${styles.iconGreen}`}>
               <Users size={20} />
             </div>
-            <div>
-              <div className={styles.cardTitle}>{cls.name}</div>
-              <div className={styles.cardMeta}>
-                  {cls.studentCount} Students • {cls.deckCount} Decks
+            <div style={{ flex: 1 }}>
+              <div className={styles.cardTitle} style={{ fontSize: '1.1rem' }}>{cls.className}</div>
+              
+              <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                
+                <div className={styles.cardMeta}>
+                   {cls.studentIds?.length || 0} Students
+                </div>
+
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    marginTop: '4px',
+                    fontSize: '0.85rem',
+                    color: '#4a1942', 
+                    fontWeight: 'bold',
+                    backgroundColor: 'rgba(74, 25, 66, 0.05)',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    width: 'fit-content'
+                }}>
+                    <Hash size={14} /> 
+                    <span>Code: {cls.classCode}</span>
+                </div>
+
               </div>
             </div>
           </Link>
         ))}
-        <Link href="/classes" className={styles.standardCard} style={{ borderStyle: 'dashed', background: 'transparent', borderColor: '#4a1942' }}>
+        
+        {/* Updated to Button opening Modal - Always shown as the last item */}
+        <button 
+            onClick={() => setIsClassModalOpen(true)}
+            className={styles.standardCard} 
+            style={{ borderStyle: 'dashed', background: 'transparent', borderColor: '#4a1942', cursor: 'pointer', width: '100%', textAlign: 'left' }}
+        >
             <div className={`${styles.iconBox}`} style={{background: 'transparent', color: '#4a1942'}}>
                <PlusCircle size={20} />
             </div>
             <div className={styles.cardTitle}>Add Class</div>
-        </Link>
+        </button>
       </div>
     );
   };
@@ -182,12 +256,18 @@ export default function TeacherDashboard() {
   return (
     <div className={styles.dashboardContent}>
       
-      {/* Modal for Teacher */}
+      {/* Modals */}
       <FolderCreator 
         isOpen={isFolderModalOpen} 
         onClose={() => setIsFolderModalOpen(false)} 
         onSuccess={refreshFolders}
         role="teacher"
+      />
+      
+      <CreateClassModal 
+        isOpen={isClassModalOpen} 
+        onClose={() => setIsClassModalOpen(false)} 
+        onSuccess={refreshClasses} 
       />
 
       <div style={{ marginBottom: '2rem' }}>
@@ -199,7 +279,6 @@ export default function TeacherDashboard() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Active Classes</h2>
-            <Link href="/classes" className={styles.actionLink}>Manage Classes</Link>
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderClasses()}
       </section>
@@ -207,13 +286,6 @@ export default function TeacherDashboard() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>My Folders</h2>
-            <button 
-              onClick={() => setIsFolderModalOpen(true)}
-              className={styles.actionLink}
-              style={{background:'transparent', border:'none', cursor:'pointer'}}
-            >
-              + New Folder
-            </button>
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderFolders()}
       </section>
@@ -221,7 +293,6 @@ export default function TeacherDashboard() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recent Decks</h2>
-            <Link href="/teacher-create" className={styles.actionLink}>+ New Deck</Link>
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderRecents()}
       </section>

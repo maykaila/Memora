@@ -216,7 +216,8 @@ export default function TeacherDashboard() {
     return (
       <div className={styles.recentsGrid}>
         {folders.map((folder) => (
-          <div key={folder.folderId} className={styles.standardCard}>
+          /* CHANGED: Wrapped in Link to navigate to teacher folder details */
+          <Link href={`/teacher-folder/${folder.folderId}`} key={folder.folderId} className={styles.standardCard}>
              <div className={styles.iconBox} style={{ backgroundColor: '#e0f2fe', color: '#4a1942' }}>
               <Folder size={20} />
             </div>
@@ -224,7 +225,7 @@ export default function TeacherDashboard() {
               <div className={styles.cardTitle}>{folder.title}</div>
               <div className={styles.cardMeta}>{folder.itemCount} items</div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     );

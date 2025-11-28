@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Users, BarChart, Menu, PlusCircle } from "lucide-react";
+import { Home, Library, GraduationCap, BarChart, Menu, PlusCircle } from "lucide-react";
 // We use .. to go up to 'components' folder to find the CSS
 import styles from "../LISidebarHeader.module.css";
 
@@ -50,7 +50,7 @@ export default function TeacherSidebar({ collapsed, onToggle }: SidebarProps) {
             isActive("/classes") ? styles.navItemActive : ""
           }`}
         >
-          <Users size={18} />
+          <GraduationCap size={18} />
           <span className={styles.navLabel}>My Classes</span>
         </Link>
 
@@ -60,11 +60,11 @@ export default function TeacherSidebar({ collapsed, onToggle }: SidebarProps) {
             isActive("/teacher-library") ? styles.navItemActive : ""
           }`}
         >
-          <BookOpen size={18} />
-          <span className={styles.navLabel}>My Library</span>
+          <Library size={18} />
+          <span className={styles.navLabel}>Library</span>
         </Link>
 
-        <Link
+        {/* <Link
           href="/teacher-create"
           className={`${styles.navItem} ${
             isActive("/teacher-create") ? styles.navItemActive : ""
@@ -72,9 +72,9 @@ export default function TeacherSidebar({ collapsed, onToggle }: SidebarProps) {
         >
           <PlusCircle size={18} />
           <span className={styles.navLabel}>Create Deck</span>
-        </Link>
+        </Link> */}
 
-        <Link
+        {/* <Link
           href="/analytics"
           className={`${styles.navItem} ${
             isActive("/analytics") ? styles.navItemActive : ""
@@ -82,7 +82,7 @@ export default function TeacherSidebar({ collapsed, onToggle }: SidebarProps) {
         >
           <BarChart size={18} />
           <span className={styles.navLabel}>Analytics</span>
-        </Link>
+        </Link> */}
       </nav>
 
       <div className={styles.sidebarFooter}>

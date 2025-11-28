@@ -14,5 +14,7 @@ namespace Memora.Services
         // --- FOLDER MANAGEMENT ---
         Task<bool> AddSetToFolderAsync(string folderId, string setId, string userId);
         Task<bool> RemoveSetFromFolderAsync(string folderId, string setId, string userId);
+        Task<bool> UpdateFolderAsync(string folderId, string userId, string newTitle, string? newDescription);
+        Task<bool> DeleteFolderAsync(string folderId, string userId);
     }
 }

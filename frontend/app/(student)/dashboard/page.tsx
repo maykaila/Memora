@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../initializeFirebase";
-import { BookOpen, Globe, Lock, Folder } from "lucide-react"; 
+import { BookOpen, Globe, Lock, Folder, GraduationCap } from "lucide-react"; 
 import Link from "next/link"; 
 import styles from "../../components/dashboardLayout.module.css"; 
 // IMPORT YOUR EXISTING COMPONENT (Now acting as a modal)
@@ -187,6 +187,12 @@ export default function StudentDashboard() {
         onSuccess={refreshFolders}
         role="student"
       />
+
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '1.8rem', color: '#4a1942', display:'flex', alignItems:'center', gap:'10px' }}>
+          <GraduationCap size={32} /> Welcome, Student.
+        </h1>
+      </div>
 
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>

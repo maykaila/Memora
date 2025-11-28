@@ -15,5 +15,6 @@ namespace Memora.Services
         Task<List<FlashcardSet>> GetPublicSetsAsync();
 
         Task<bool> DeleteSetAsync(string setId, string userId);
+        Task<FlashcardSet?> GetSetByIdAsync(string setId);
     }
 }

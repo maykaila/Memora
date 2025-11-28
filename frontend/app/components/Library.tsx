@@ -5,20 +5,14 @@ import { useRouter } from "next/navigation";
 import "./library.css";
 import { auth } from "../../initializeFirebase"; 
 import { onAuthStateChanged } from "firebase/auth";
+import Link from "next/link"; 
 
 import {
-  MoreVertical,
-  Edit,
-  Trash2,
-  BookOpen,
-  Clock,
-  Search,
-  Filter,
-  Plus,
-  Loader2,
-  Calendar,
-  FolderPlus // 1. Import the Folder icon
+  MoreVertical, Edit, Trash2, BookOpen, Clock, Search, Filter, Plus, Loader2, Calendar, FolderPlus, Folder
 } from "lucide-react";
+
+import AddToFolderModal from "./AddToFolderModal";
+import FolderCreator from "./FolderCreator"; 
 
 // --- Types ---
 type LibrarySet = {
@@ -29,14 +23,33 @@ type LibrarySet = {
   category: string;
 };
 
-// --- Component ---
-export default function LibraryPage() {
+type LibraryFolder = {
+  folderId: string;
+  title: string;
+  itemCount: number;
+};
+
+// 1. Add Props Interface
+interface LibraryPageProps {
+  role?: "student" | "teacher";
+}
+
+// 2. Accept Role Prop (Defaults to student)
+export default function LibraryPage({ role = "student" }: LibraryPageProps) {
   const router = useRouter();
 
-  const [sets, setSets] = useState<LibrarySet[]>([]); 
+  // State
+  const [activeTab, setActiveTab] = useState<"sets" | "folders">("sets");
+  const [sets, setSets] = useState<LibrarySet[]>([]);
+  const [folders, setFolders] = useState<LibraryFolder[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  
+  // Modal States
+  const [isAddToFolderOpen, setIsAddToFolderOpen] = useState(false);
+  const [selectedDeckId, setSelectedDeckId] = useState<string>("");
+  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
 
   // --- Helper: Calculate Days Ago ---
   const calculateDaysAgo = (dateString: string) => {
@@ -44,8 +57,7 @@ export default function LibraryPage() {
     const createdDate = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - createdDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
   };
 
   // --- Helper: Format Date ---
@@ -60,58 +72,62 @@ export default function LibraryPage() {
   };
 
   // --- Data Fetching Logic ---
-  useEffect(() => {
-    const fetchMySets = async (user: any) => {
-      try {
-        const token = await user.getIdToken();
+  const fetchData = async (user: any) => {
+    try {
+      const token = await user.getIdToken();
+      const headers = { Authorization: `Bearer ${token}` };
 
-        const response = await fetch("http://localhost:5261/api/flashcardsets/my-sets", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` 
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        const mappedSets: LibrarySet[] = data.map((item: any) => ({
+      // 1. Fetch Sets
+      const setsRes = await fetch("http://localhost:5261/api/flashcardsets/my-sets", { headers });
+      if (setsRes.ok) {
+        const data = await setsRes.json();
+        setSets(data.map((item: any) => ({
           id: item.SetId || item.setId || "unknown",
           title: item.Title || item.title || "Untitled Set", 
-          
-          // Display Formatted Date
           formattedDate: formatDate(item.DateCreated || item.dateCreated),
-          
           daysAgo: calculateDaysAgo(item.DateCreated || item.dateCreated),
           category: (item.TagIds && item.TagIds.length > 0) 
             ? item.TagIds[0] 
             : (item.tagIds && item.tagIds.length > 0) 
             ? item.tagIds[0] 
             : "General",
-        }));
-
-        setSets(mappedSets);
-      } catch (err) {
-        console.error("Failed to fetch library:", err);
-      } finally {
-        setLoading(false);
+        })));
       }
-    };
 
+      // 2. Fetch Folders
+      const foldersRes = await fetch("http://localhost:5261/api/folders/my-folders", { headers });
+      if (foldersRes.ok) {
+        const folderData = await foldersRes.json();
+        
+        // Manual mapping to handle PascalCase vs camelCase issues safely
+        setFolders(folderData.map((f: any) => ({
+             folderId: f.FolderId || f.folderId || "unknown_id",
+             title: f.Title || f.title || "Untitled Folder",
+             itemCount: f.FlashcardSetIds ? f.FlashcardSetIds.length : (f.flashcardSetIds ? f.flashcardSetIds.length : 0)
+        })));
+      }
+
+    } catch (err) {
+      console.error("Failed to fetch library:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        fetchMySets(user);
+        fetchData(user);
       } else {
         setLoading(false);
       }
     });
-
     return () => unsubscribe();
   }, []);
+
+  const refreshData = () => {
+    if(auth.currentUser) fetchData(auth.currentUser);
+  };
 
   // --- Filtering ---
   const filteredSets = sets.filter((s) => {
@@ -119,9 +135,15 @@ export default function LibraryPage() {
     return safeTitle.includes(search.toLowerCase());
   });
 
+  const filteredFolders = folders.filter((f) => {
+    const safeTitle = f.title ? f.title.toLowerCase() : "";
+    return safeTitle.includes(search.toLowerCase());
+  });
+
   // --- Handlers ---
-  const handleCreate = () => {
-    router.push("/create");
+  const handleCreateSet = () => {
+    if (role === "teacher") router.push("/teacher-create");
+    else router.push("/create");
   };
 
   const handleSearchByCategory = () => {
@@ -129,14 +151,14 @@ export default function LibraryPage() {
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/create?id=${id}`);
+    if (role === "teacher") router.push(`/teacher-create?id=${id}`);
+    else router.push(`/create?id=${id}`);
     setMenuOpen(null);
   };
 
-  // 2. NEW HANDLER: Add to Folder
-  const handleAddToFolder = (id: string) => {
-    // TODO: Connect this to your future "Folders" API
-    alert(`Add Set ID: ${id} to a folder logic goes here.`);
+  const handleAddToFolderClick = (id: string) => {
+    setSelectedDeckId(id);
+    setIsAddToFolderOpen(true);
     setMenuOpen(null);
   };
 
@@ -158,14 +180,10 @@ export default function LibraryPage() {
 
         const response = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
             method: 'DELETE',
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
+            headers: { "Authorization": `Bearer ${token}` }
         });
 
-        if (!response.ok) {
-            throw new Error("Failed to delete from server");
-        }
+        if (!response.ok) throw new Error("Failed to delete from server");
 
     } catch (error) {
         console.error("Delete failed:", error);
@@ -189,6 +207,21 @@ export default function LibraryPage() {
   return (
     <div className="lib-main-content-only" onClick={handleOutsideClick}>
 
+      {/* Modals */}
+      <AddToFolderModal 
+        isOpen={isAddToFolderOpen} 
+        onClose={() => setIsAddToFolderOpen(false)} 
+        deckId={selectedDeckId} 
+      />
+      
+      {/* Folder Creator Popup */}
+      <FolderCreator 
+        isOpen={isCreateFolderOpen} 
+        onClose={() => setIsCreateFolderOpen(false)} 
+        onSuccess={refreshData}
+        role={role}
+      />
+
       <section className="lib-content-wrapper">
 
         <div className="lib-top-row">
@@ -196,7 +229,7 @@ export default function LibraryPage() {
             <Search size={20} className="lib-search-icon" />
             <input
               className="lib-search-input-main"
-              placeholder="Search flashcards"
+              placeholder={activeTab === 'sets' ? "Search flashcards" : "Search folders"}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -210,22 +243,66 @@ export default function LibraryPage() {
             Search by category
           </button>
 
-          <button
-            className="lib-top-btn lib-top-btn-solid"
-            onClick={handleCreate}
-          >
-            <Plus size={18} />
-            Create Flashcards
-          </button>
+          {/* DYNAMIC CREATE BUTTON */}
+          {activeTab === 'sets' ? (
+            <button
+              className="lib-top-btn lib-top-btn-solid"
+              onClick={handleCreateSet}
+            >
+              <Plus size={18} />
+              Create Flashcards
+            </button>
+          ) : (
+            <button
+              className="lib-top-btn lib-top-btn-solid"
+              onClick={() => setIsCreateFolderOpen(true)}
+            >
+              <FolderPlus size={18} />
+              Create Folder
+            </button>
+          )}
         </div>
 
-        <h1 className="lib-title">Your Library</h1>
+        {/* TABS WITH GRAY-OUT EFFECT */}
+        <div style={{ display: 'flex', gap: '30px', marginBottom: '25px', alignItems: 'baseline', borderBottom:'1px solid #eee', paddingBottom:'10px' }}>
+          <h1 
+            onClick={() => setActiveTab('sets')}
+            style={{ 
+                cursor: 'pointer', 
+                margin: 0,
+                fontSize: '2rem',
+                // Active vs Inactive Styles
+                color: activeTab === 'sets' ? '#4a1942' : '#94718fff', 
+                borderBottom: activeTab === 'sets' ? '3px solid #4a1942' : '3px solid transparent',
+                paddingBottom: '5px',
+                transition: 'all 0.2s ease'
+            }}
+          >
+            Your Library
+          </h1>
+          <h1 
+            onClick={() => setActiveTab('folders')}
+            style={{ 
+                cursor: 'pointer', 
+                margin: 0,
+                fontSize: '2rem',
+                // Active vs Inactive Styles
+                color: activeTab === 'folders' ? '#4a1942' : '#94718fff', 
+                borderBottom: activeTab === 'folders' ? '3px solid #4a1942' : '3px solid transparent',
+                paddingBottom: '5px',
+                transition: 'all 0.2s ease'
+            }}
+          >
+            Folders
+          </h1>
+        </div>
 
         {loading ? (
            <div style={{ display: 'flex', justifyContent: 'center', padding: '50px' }}>
               <Loader2 className="animate-spin" size={40} color="#666" />
            </div>
-        ) : (
+        ) : activeTab === 'sets' ? (
+          /* --- SETS LIST --- */
           <div className="lib-list">
             {filteredSets.length === 0 && (
               <div className="lib-empty">
@@ -236,32 +313,24 @@ export default function LibraryPage() {
             {filteredSets.map((set) => (
               <div key={set.id} className="lib-card" onClick={() => {
                 if(menuOpen !== set.id) {
-                   alert(`Navigating to study set: ${set.title}`);
+                   router.push(`/overviewOfCards?id=${set.id}`);
                 }
               }}>
                 <div className="lib-card-main">
-
                   <div className="lib-pill-icon">
                     <BookOpen size={20} />
                   </div>
-
                   <div className="lib-card-text">
                     <div className="lib-card-title">{set.title}</div>
-
                     <div className="lib-card-meta">
-                      
                       <span className="lib-cards-count" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Calendar size={12} /> Created: {set.formattedDate}
                       </span>
-                      
                       <span>|</span>
-                      
                       <span className="lib-card-time-meta">
                         <Clock size={12} /> {set.daysAgo} days ago
                       </span>
-                      
                       <span>|</span>
-                      
                       <span className="lib-card-category-pill">
                         {set.category}
                       </span>
@@ -270,38 +339,31 @@ export default function LibraryPage() {
                 </div>
 
                 <div className="lib-card-actions">
-
-                  {menuOpen === set.id ? (
+                  {menuOpen === set.id && (
                     <div className="lib-popup-menu-inline" onClick={e => e.stopPropagation()}>
-                      
-                      {/* Edit Button */}
                       <button
                         className="lib-action-btn lib-edit-btn"
                         onClick={(e) => { e.stopPropagation(); handleEdit(set.id); }}
                       >
-                        <Edit size={16} />
-                        Edit
+                        <Edit size={16} /> Edit
                       </button>
 
-                      {/* 3. NEW Add to Folder Button */}
+                      {/* Add to Folder */}
                       <button
                         className="lib-action-btn lib-folder-btn"
-                        onClick={(e) => { e.stopPropagation(); handleAddToFolder(set.id); }}
+                        onClick={(e) => { e.stopPropagation(); handleAddToFolderClick(set.id); }}
                       >
-                        <FolderPlus size={16} />
-                        Add to Folder
+                        <FolderPlus size={16} /> Add to Folder
                       </button>
 
-                      {/* Delete Button */}
                       <button
                         className="lib-action-btn lib-delete-btn"
                         onClick={(e) => { e.stopPropagation(); handleDelete(set.id); }}
                       >
-                        <Trash2 size={16} />
-                        Delete
+                        <Trash2 size={16} /> Delete
                       </button>
                     </div>
-                  ) : null}
+                  )}
 
                   <button
                     className="lib-dots-btn"
@@ -316,7 +378,42 @@ export default function LibraryPage() {
               </div>
             ))}
           </div>
+        ) : (
+          /* --- FOLDERS LIST --- */
+          <div className="lib-list">
+            {folders.length === 0 ? (
+              <div className="lib-empty">
+                No folders yet. 
+                <button onClick={() => setIsCreateFolderOpen(true)} style={{background:'none', border:'none', color:'#4a1942', textDecoration:'underline', cursor:'pointer', marginLeft:'5px', fontSize:'inherit', fontWeight:'bold'}}>
+                  Create one?
+                </button>
+              </div>
+            ) : (
+              filteredFolders.map((folder) => (
+                <div 
+                    key={folder.folderId} 
+                    className="lib-card" 
+                    onClick={() => {
+                        // Dynamic Routing based on Role to avoid collision
+                        const path = role === 'teacher' ? `/teacher-folder/${folder.folderId}` : `/folder/${folder.folderId}`;
+                        router.push(path);
+                    }}
+                >
+                  <div className="lib-card-main">
+                    <div className="lib-pill-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                      <Folder size={20} />
+                    </div>
+                    <div className="lib-card-text">
+                      <div className="lib-card-title">{folder.title}</div>
+                      <div className="lib-card-meta">{folder.itemCount} items</div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
+
       </section>
     </div>
   );

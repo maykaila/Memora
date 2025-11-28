@@ -211,12 +211,18 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
         </div>
         
         <div className={styles.headerActions}>
-          <button 
+          {/* <button 
             className={styles.primaryBtn} 
-            style={{background: '#fff', color: '#4a1942', border: '1px solid #eee'}}
+            style={{background: '#4a1942', color: '#ffffffff', border: '1px solid #eee'}}
             onClick={() => setIsSettingsModalOpen(true)}
           >
             <Settings size={18} /> Settings
+          </button> */}
+          <button 
+            className={styles.settingsBtn} 
+            onClick={() => setIsSettingsModalOpen(true)}
+            >
+            <Settings size={20} />
           </button>
         </div>
       </div>

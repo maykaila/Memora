@@ -110,5 +110,17 @@ namespace Memora.Services
 
             return true;
         }
+
+        public async Task<FlashcardSet?> GetSetByIdAsync(string setId)
+        {
+            DocumentSnapshot snapshot = await _setsCollection.Document(setId).GetSnapshotAsync();
+            
+            if (snapshot.Exists)
+            {
+                return snapshot.ConvertTo<FlashcardSet>();
+            }
+            
+            return null;
+        }
     }
 }

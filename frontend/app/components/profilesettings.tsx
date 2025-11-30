@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './profilesettings.css'; 
 import { auth } from '../../initializeFirebase'; 
-import { User } from 'firebase/auth';
+import { User, signOut } from 'firebase/auth'; 
 import { uploadProfilePicture, updateUserProfile } from '../../services/userService';
 
 // Port 5261 as per your leader
@@ -20,9 +20,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
   
   // FETCHED DATA STATES
   const [displayName, setDisplayName] = useState("Loading..."); 
+  // NEW: State for Role
+  const [role, setRole] = useState(""); 
   const [email, setEmail] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -32,18 +33,24 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
       try {
         const token = await currentUser.getIdToken();
         const response = await fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`, {
-           headers: { 'Authorization': `Bearer ${token}` }
+             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
           const data = await response.json();
-          const backendName = data.username || data.Username; 
+          // Adjust casing based on your API response
+          const backendName = data.username || data.Username || data.displayName; 
+          const backendRole = data.role || data.Role || "Student"; // Default to Student
+          
           setDisplayName(backendName || currentUser.displayName || "User");
+          setRole(backendRole);
         } else {
           setDisplayName(currentUser.displayName || "User");
+          setRole("Student");
         }
       } catch (err) {
         setDisplayName(currentUser.displayName || "User");
+        setRole("Student");
       }
     };
 
@@ -87,7 +94,20 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
         setLoading(false);
       } catch (e) { setLoading(false); }
     }
-  };// 4. HANDLE DELETE ACCOUNT
+  };
+
+  // 4. HANDLE LOGOUT
+  const handleLogoutAction = async () => {
+    try {
+      await signOut(auth); // Actually sign out from Firebase
+      if (onLogout) onLogout(); // Update parent UI state
+      onClose(); // Close modal
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  // 5. HANDLE DELETE ACCOUNT
   const handleDeleteAccount = async (e: React.MouseEvent) => {
     e.stopPropagation(); 
     if (!user) return;
@@ -96,30 +116,36 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
     if (!confirmDelete) return;
 
     try {
-      // A. Delete from Backend Database
       const token = await user.getIdToken();
+      
+      // A. Delete from Backend Database FIRST
       const response = await fetch(`${API_BASE_URL}/api/users/${user.uid}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      // B. Delete from Firebase Auth
-      await user.delete(); // <--- If this fails, it jumps to 'catch'
+      // CRITICAL CHECK: If backend fails, DO NOT delete Firebase account
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Backend deletion failed: ${response.status} ${errorText}`);
+      }
+
+      // B. Delete from Firebase Auth (Only if Step A worked)
+      await user.delete();
 
       // C. Logout/Close
+      alert("Account successfully deleted.");
       if (onLogout) onLogout();
       
     } catch (error: any) {
       console.error("Delete Error:", error);
 
-      // --- THE FIX IS HERE ---
       if (error.code === 'auth/requires-recent-login') {
-        alert("SECURITY ALERT: For your protection, you must have recently signed in to delete your account.\n\nWe will log you out now. Please sign in again and try deleting your account immediately.");
-        
-        // Force logout so they can sign in again fresh
+        alert("SECURITY ALERT: Please sign out and sign in again before deleting your account.");
+        await signOut(auth);
         if (onLogout) onLogout(); 
       } else {
-        alert("Failed to delete account. Please try again.");
+        alert("Failed to delete account data. Please contact support or try again.\nDetails: " + error.message);
       }
     }
   };
@@ -133,22 +159,25 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
 
         <div className="profile-header-card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '20px', padding: '20px' }}>
           
-          {/* Picture Section (Clickable for Upload) */}
+          {/* Picture Section */}
           <div className="avatar-container" onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer' }}>
             <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" style={{ display: 'none' }} />
             
             <div className="avatar-circle" style={{ backgroundImage: photoPreview ? `url(${photoPreview})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
               {!photoPreview && <span style={{color:'white', fontSize:'2rem'}}>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>}
             </div>
-            
-            {/* REMOVED: "Change profile" text is gone, but the click functionality above remains. */}
           </div>
 
-          {/* Name Section */}
+          {/* Name & Role Section */}
           <div className="username-display">
              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>
-               {displayName}
+               Hello, {displayName}!
              </h2>
+             
+             {/* UPDATED: Displaying Role Here */}
+             <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>
+                Role: {role}
+             </div>
           </div>
         </div>
 
@@ -164,7 +193,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-            <button className="logout-btn" onClick={onLogout}>Logout</button>
+            <button className="logout-btn" onClick={handleLogoutAction}>Logout</button>
             
             <button 
                 onClick={handleDeleteAccount}

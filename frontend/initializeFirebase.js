@@ -13,6 +13,9 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 
+// needed for flashcards
+import { getFirestore } from "firebase/firestore";
+
 // Your web app's Firebase configuration (remains the same)
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -30,7 +33,7 @@ const app = initializeApp(firebaseConfig);
 
 // --- 2. We ONLY initialize auth ---
 const auth = getAuth(app);
-// We remove: const db = getFirestore(app);
+const db = getFirestore(app);
 
 // --- 3. The custom 'signUp' function is REMOVED ---
 // Why? Because your SignUpPage now has to do two things:
@@ -40,7 +43,9 @@ const auth = getAuth(app);
 // --- 4. We export the raw auth functions ---
 // Your components will use these directly.
 export { 
-  auth, 
+  app,
+  auth,
+  db, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   sendPasswordResetEmail,

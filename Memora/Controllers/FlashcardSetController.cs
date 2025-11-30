@@ -70,6 +70,12 @@ namespace Memora.Controllers
                     return Unauthorized(new { message = "Invalid or missing token." });
                 }
 
+                string? username = await GetUsernameFromTokenAsync();
+                if (username == null)
+                {
+                    return Unauthorized(new { message = "User must have a username claim." });
+                }
+
                 var newSet = await _setService.CreateSetAsync(userId, request);
 
                 return CreatedAtAction(nameof(GetSet), new { setId = newSet.SetId }, newSet);
@@ -79,6 +85,28 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
             }
         }
+
+        private async Task<string?> GetUsernameFromTokenAsync()
+        {
+            var token = HttpContext.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
+            if (string.IsNullOrEmpty(token))
+                return null;
+
+            var decoded = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(token);
+            var claims = decoded.Claims;
+
+            if (claims.ContainsKey("username"))
+                return claims["username"]?.ToString();
+
+            if (claims.ContainsKey("name"))
+                return claims["name"]?.ToString();
+
+            if (claims.ContainsKey("email"))
+                return claims["email"]?.ToString(); // fallback
+
+            return null;
+        }
+
 
         [HttpGet("my-sets")] // GET /api/flashcardsets/my-sets
         public async Task<IActionResult> GetMySets()

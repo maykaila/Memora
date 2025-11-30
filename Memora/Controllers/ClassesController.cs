@@ -88,7 +88,23 @@ namespace Memora.Controllers
                 var classObj = await _classService.GetClassByIdAsync(classId);
                 if (classObj == null) return NotFound(new { message = "Class not found" });
 
-                return Ok(classObj);
+                // --- NEW: Fetch the Teacher Name ---
+                string teacherName = await _classService.GetUserNameByIdAsync(classObj.TeacherId);
+
+                // Return an anonymous object combining the class data + the teacher name
+                var response = new 
+                {
+                    classObj.ClassId,
+                    classObj.ClassName,
+                    classObj.ClassCode,
+                    classObj.TeacherId,
+                    classObj.DateCreated,
+                    classObj.StudentIds,
+                    classObj.AssignmentIds,
+                    TeacherName = teacherName // <--- This allows the frontend to see the name
+                };
+
+                return Ok(response);
             }
             catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
@@ -195,9 +211,80 @@ namespace Memora.Controllers
                 string? userId = await GetUserIdFromTokenAsync();
                 if (userId == null) return Unauthorized();
 
-                // This calls the service method to get classes where student_ids contains userId
                 var classes = await _classService.GetClassesForStudentAsync(userId);
-                return Ok(classes);
+                
+                var result = new List<ClassDto>(); // <--- Use the new DTO here
+
+                foreach (var cls in classes)
+                {
+                    string teacherName = await _classService.GetUserNameByIdAsync(cls.TeacherId);
+
+                    result.Add(new ClassDto
+                    {
+                        ClassId = cls.ClassId,
+                        ClassName = cls.ClassName,
+                        ClassCode = cls.ClassCode,
+                        TeacherName = teacherName,
+                        DeckCount = cls.AssignmentIds.Count
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{classId}/assignments/me")]
+        public async Task<IActionResult> GetStudentAssignments(string classId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                // Reuse the service that gets decks. 
+                // In the future, you would fetch 'StudentProgress' here and merge it.
+                var decks = await _classService.GetDecksInClassAsync(classId);
+                
+                // Map to the DTO structure the frontend expects
+                var assignments = decks.Select(d => new 
+                {
+                    SetId = d.SetId,
+                    Title = d.Title,
+                    DateAssigned = d.DateCreated, // Or a specific assignment date if you add that later
+                    Progress = 0, // Default to 0 for now
+                    Status = "Not Started"
+                });
+
+                return Ok(assignments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{classId}/leave")]
+        public async Task<IActionResult> LeaveClass(string classId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                bool success = await _classService.LeaveClassAsync(userId, classId);
+
+                if (success)
+                {
+                    return Ok(new { message = "Successfully left the class." });
+                }
+                else
+                {
+                    return NotFound(new { message = "Class not found." });
+                }
             }
             catch (Exception ex)
             {

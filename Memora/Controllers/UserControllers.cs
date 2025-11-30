@@ -103,5 +103,54 @@ namespace Memora.Controllers
             }
         }
         // For Streak -------------------------------------------------------------------------------------------
+
+
+        //* for deleting id
+
+ // --- NEW DELETE METHOD STARTS HERE ---
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            try
+            {
+                // 1. Authorization Check
+                string authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { message = "No token provided." });
+                }
+
+                // 2. Verify Token
+                string idToken = authHeader.Split(" ")[1];
+                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+
+                // 3. Security: Ensure user is deleting THEIR OWN account
+                if (decodedToken.Uid != id)
+                {
+                    return StatusCode(403, new { message = "You are not allowed to delete this account." });
+                }
+
+                // 4. Call Service to delete from Database
+                // Note: You must ensure 'DeleteUserAsync' exists in your IUserService
+                bool deleted = await _userService.DeleteUserAsync(id);
+
+                if (!deleted)
+                {
+                    return NotFound(new { message = "User not found." });
+                }
+
+                return Ok(new { message = "User deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                // This catches database foreign key constraints (e.g., if user has flashcards)
+                return StatusCode(500, new { message = "Failed to delete user.", error = ex.Message });
+            }
+        }
+        // --- NEW DELETE METHOD ENDS HERE ---
+
+
+
+        //* delete id end
     }
 }

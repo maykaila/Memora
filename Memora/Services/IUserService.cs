@@ -14,5 +14,10 @@ namespace Memora.Services
         //For Streak ----------------------------
         Task CheckInUserAsync(string uid);
         //For Streak ----------------------------
-          }
+
+        Task<User?> GetUserByIdAsync(string uid);
+
+        // Deletes the user
+        Task<bool> DeleteUserAsync(string userId);
+    }
 }

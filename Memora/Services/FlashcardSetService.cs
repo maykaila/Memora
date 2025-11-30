@@ -18,7 +18,7 @@ namespace Memora.Services
             _setsCollection = _db.Collection("flashcardSets");
         }
 
-        public async Task<FlashcardSet> CreateSetAsync(string userId, CreateFlashcardSetRequest request)
+        public async Task<FlashcardSet> CreateSetAsync(string userId, string username, CreateFlashcardSetRequest request)
         {
             DocumentReference docRef = _setsCollection.Document();
 
@@ -28,6 +28,7 @@ namespace Memora.Services
                 UserId = userId,
                 Title = request.Title,
                 Description = request.Description,
+                CreatedBy = username,
                 Visibility = request.Visibility,
                 DateCreated = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow,

@@ -19,24 +19,52 @@ namespace Memora.Services
         }
 
         public async Task<FlashcardSet> CreateSetAsync(string userId, CreateFlashcardSetRequest request)
+    {
+        DocumentReference docRef = _setsCollection.Document();
+
+        var newSet = new FlashcardSet
         {
-            DocumentReference docRef = _setsCollection.Document();
+            SetId = docRef.Id,
+            UserId = userId,
+            Title = request.Title,
+            Description = request.Description,
+            Visibility = request.Visibility,
+            DateCreated = DateTime.UtcNow,
+            LastUpdated = DateTime.UtcNow,
+            TagIds = request.TagIds ?? new List<string>()
+        };
 
-            var newSet = new FlashcardSet
+        // 1. Save the main FlashcardSet document
+        await docRef.SetAsync(newSet);
+        
+        // 2. Add logic to save the individual flashcards to a subcollection
+        CollectionReference cardsCollection = docRef.Collection("flashcards");
+        
+        // We can use a WriteBatch for efficiency and atomicity (all or nothing)
+        WriteBatch batch = _db.StartBatch(); 
+
+        foreach (var cardDto in request.Cards)
+        {
+            DocumentReference cardDocRef = cardsCollection.Document();
+            var newCard = new Flashcard
             {
-                SetId = docRef.Id,
-                UserId = userId,
-                Title = request.Title,
-                Description = request.Description,
-                Visibility = request.Visibility,
-                DateCreated = DateTime.UtcNow,
-                LastUpdated = DateTime.UtcNow,
-                TagIds = request.TagIds ?? new List<string>()
+                CardId = cardDocRef.Id,
+                Term = cardDto.Term,
+                Definition = cardDto.Definition,
+                ImageUrl = cardDto.ImageUrl,
+                DateCreated = DateTime.UtcNow
             };
-
-            await docRef.SetAsync(newSet);
-            return newSet;
+            
+            // Add the flashcard to the batch
+            batch.Set(cardDocRef, newCard); 
         }
+        
+        // Commit all card saves together
+        await batch.CommitAsync();
+        
+        // The main set and all cards are now saved.
+        return newSet;
+    }
 
         public async Task<IEnumerable<FlashcardSet>> GetSetsForUserAsync(string userId)
         {

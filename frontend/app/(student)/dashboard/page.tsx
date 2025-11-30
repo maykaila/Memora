@@ -141,7 +141,8 @@ export default function StudentDashboard() {
     return (
       <div className={styles.recentsGrid}>
         {folders.map((folder) => (
-          <div key={folder.folderId} className={styles.standardCard}>
+          /* CHANGED: Wrapped in Link to navigate to folder details */
+          <Link href={`/folder/${folder.folderId}`} key={folder.folderId} className={styles.standardCard}>
             <div 
                 className={styles.iconBox} 
                 style={{ 
@@ -156,7 +157,7 @@ export default function StudentDashboard() {
               <div className={styles.cardTitle}>{folder.title}</div>
               <div className={styles.cardMeta}>{folder.itemCount} items</div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     );

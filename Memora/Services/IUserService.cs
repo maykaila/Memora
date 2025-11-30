@@ -19,5 +19,6 @@ namespace Memora.Services
 
         // Deletes the user
         Task<bool> DeleteUserAsync(string userId);
+
     }
 }

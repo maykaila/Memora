@@ -1,27 +1,40 @@
-/* 1. The Full Screen Background */
-.pageWrapper {
-  /* min-height: 100vh;
-  width: 100vw; */
+/* --- LAYOUT & NAVBAR --- */
+.layoutContainer {
+  min-height: 100vh;
+  background-color: #f2dff2; /* Light purple background */
   display: flex;
-  justify-content: center; /* Centers card horizontally */
-  align-items: center;     /* Centers card vertically */
-  /* background-color: #f2dff2; The light purple/pink background from your design */
-  padding: 50px;
+  flex-direction: column;
 }
 
-/* 2. The Centered Card */
+.mainContent {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* --- AUTH CARD --- */
+.pageWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .authCard {
   display: flex;
   width: 100%;
-  max-width: 1100px; /* Prevents it from getting too wide on big screens */
-  height: 590px;     /* Fixed height for consistency, or use min-height */
+  max-width: 1000px;
+  height: 600px;
   background-color: #fdfdf5; /* Cream background */
-  border-radius: 50px; /* The large rounded corners */
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Optional: adds subtle depth */
+  border-radius: 40px;
+  overflow: hidden; /* Keeps image inside rounded corners */
+  box-shadow: 0 10px 30px rgba(74, 25, 66, 0.1);
+  margin-top: 35px;
+  margin-bottom: 35px;
 }
 
-/* --- LEFT SIDE (FORM) --- */
+/* --- FORM SECTION --- */
 .formSection {
   flex: 1; 
   display: flex;
@@ -29,12 +42,12 @@
   justify-content: center;
   align-items: center;
   padding: 40px;
-  /* No background color needed here, it inherits from authCard */
+  transition: all 0.3s ease;
 }
 
 .formContainer {
   width: 100%;
-  max-width: 350px; 
+  max-width: 380px; 
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -42,84 +55,139 @@
 
 .input {
   width: 100%;
-  padding: 18px 20px; /* Slightly larger padding matches design */
-  border: none;
-  border-radius: 15px; 
-  background-color: #e6e6e6; /* Grey input background */
+  padding: 16px 20px;
+  border: 2px solid transparent;
+  border-radius: 16px; 
+  background-color: #e6e6e6; 
   font-size: 16px;
   outline: none;
   color: #333;
+  transition: border-color 0.2s, background-color 0.2s;
+  box-sizing: border-box;
 }
 
-.input::placeholder {
-  color: #888;
+.input:focus {
+  background-color: #fff;
+  border-color: #d4b4d6;
+}
+
+.submitButton {
+  width: 100%; 
+  padding: 16px;
+  border: none;
+  border-radius: 25px;
+  background-color: #d16d6d; /* Rose/Red Button */
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .forgotPassword {
   text-align: right;
   font-size: 14px;
-  color: #333; 
-  margin-bottom: 10px;
+  color: #666; 
   text-decoration: none;
-}
-
-.submitButton {
-  width: 150px; 
-  padding: 15px;
-  border: none;
-  border-radius: 25px;
-  background-color: #d16d6d; /* The reddish button color */
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: bold;
-  align-self: center; 
-  margin-top: 10px;
-  transition: opacity 0.2s;
-}
-
-.submitButton:hover {
-  opacity: 0.9;
+  margin-top: -5px;
 }
 
 .error {
   color: #d16d6d;
   font-size: 14px;
   text-align: center;
-  margin-bottom: 10px;
+  background: #ffe6e6;
+  padding: 10px;
+  border-radius: 10px;
 }
 
-/* --- RIGHT SIDE (IMAGE) --- */
+/* --- ROLE SELECTOR --- */
+.roleSelector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  background: #f0c9ff;
+  padding: 5px;
+  border-radius: 12px;
+}
+
+.roleButton {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  color: #4a1942;
+  background: transparent;
+}
+
+.roleButtonActive {
+  background: #4a1942;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* --- IMAGE SECTION --- */
 .imageSection {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
+  background-color: #fdfdf5; /* Same cream color to blend in */
   padding: 40px;
 }
 
 .heroImage {
   width: 100%;
   height: auto;
-  max-width: 600px; /* Controls image size */
+  max-width: 450px;
   object-fit: contain;
 }
 
-/* Mobile Responsive */
-@media (max-width: 850px) {
+/* --- RESPONSIVE (UPDATED TO KEEP IMAGE) --- */
+@media (max-width: 900px) {
   .authCard {
-    flex-direction: column;
-    height: auto; /* Allow height to grow on mobile */
-    border-radius: 30px;
+    flex-direction: column; /* Stack them vertically */
+    height: auto;           /* Allow height to grow */
+    max-width: 500px;       /* Keep card compact */
+    margin-top: 35px;
+    margin-bottom: 35px;
+  }
+
+  .formSection {
+    padding: 40px 30px 20px 30px; /* Reduce bottom padding so image sits closer */
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .imageSection {
-    display: none; /* Hide image on tablets/mobile */
+    display: flex; /* SHOW the image again */
+    padding: 0px 30px 40px 30px; /* Add padding at bottom */
+    align-items: flex-start; /* Align closer to the form */
+    flex: 0; /* Don't stretch */
+  }
+
+  .heroImage {
+    max-width: 250px; /* Make image smaller on mobile */
+  }
+
+  .navbar {
+    padding: 1rem 1.5rem;
   }
   
-  .formSection {
-    width: 100%;
-    padding: 60px 20px;
+  .logo {
+    font-size: 1.5rem;
   }
 }

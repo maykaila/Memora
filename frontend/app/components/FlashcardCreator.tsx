@@ -14,17 +14,17 @@ interface Card {
 }
 
 interface FlashcardCreatorProps {
-    role: "student" | "teacher";
+  role: "student" | "teacher";
 }
 
 export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false); 
-  
+ 
   const [cards, setCards] = useState<Card[]>([
-    { id: 1, term: "", definition: "" },
-    { id: 2, term: "", definition: "" },
+  { id: 1, term: "", definition: "" },
+  { id: 2, term: "", definition: "" },
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -33,16 +33,16 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
 
   const addCard = () => {
     setCards((prev) => [
-      ...prev,
-      { id: prev.length ? prev[prev.length - 1].id + 1 : 1, term: "", definition: "" },
+    ...prev,
+    { id: prev.length ? prev[prev.length - 1].id + 1 : 1, term: "", definition: "" },
     ]);
   };
 
   const updateCard = (id: number, field: "term" | "definition", value: string) => {
     setCards((prev) =>
-      prev.map((card) =>
-        card.id === id ? { ...card, [field]: value } : card
-      )
+    prev.map((card) =>
+    card.id === id ? { ...card, [field]: value } : card
+    )
     );
   };
 
@@ -90,41 +90,46 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
 
     try {
       const response = await fetch('http://localhost:5261/api/flashcardsets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`,
-        },
-        body: body,
-      });
+      method: 'POST',
+      headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`,
+    },
+      body: body,
+    });
 
-      if (!response.ok) {
-        let errorMessage = "Failed to save deck.";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (jsonError) {
-          console.error("Could not parse error response", jsonError);
-        }
-        throw new Error(errorMessage);
+    if (!response.ok) {
+      let errorMessage = "Failed to save deck.";
+      try {
+        // Attempt to read the detailed error message from the backend response body
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch (jsonError) {
+        // If the response isn't JSON, use the status text
+        console.error("Could not parse error response", jsonError);
+        errorMessage = `${response.status}: ${response.statusText}`;
       }
+      throw new Error(errorMessage);
+    }
 
-      alert("Deck saved successfully!");
-      
-      // ROUTING LOGIC BASED ON ROLE
-      if (role === "teacher") {
-        router.push('/teacher-dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+    alert("Deck saved successfully!");
+  
+  // ROUTING LOGIC BASED ON ROLE
+    if (role === "teacher") {
+      router.push('/teacher-dashboard');
+    } else {
+      router.push('/dashboard');
+    }
 
     } catch (err: any) {
-      setError(err.message);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setError(err.message);
+        // Added alert for immediate feedback on the detailed error
+    alert(`Error saving deck: ${err.message}`); 
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+ };
 
   return (
     <div className={styles.page}>

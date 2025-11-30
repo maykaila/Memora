@@ -138,8 +138,8 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
             <h2 className={styles.title} style={{color:'#166534', textAlign: 'center'}}>Success!</h2>
             <p style={{color:'#666', marginTop: '10px', textAlign: 'center'}}>You have successfully joined the class.</p>
             
-            <button onClick={handleDone} className={styles.doneBtn} style={{marginTop: '20px', width: '100%'}}>
-              Go to Dashboard <ArrowRight size={16} style={{marginLeft:'5px'}}/>
+            <button onClick={handleDone} className={styles.doneBtn} style={{marginTop: '20px', width: '25%'}}>
+              Done
             </button>
           </div>
         )}

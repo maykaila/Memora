@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react"; // Added useRef
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, DoorOpen, Archive, BookOpen } from "lucide-react"; // Check your imports
+import { DoorOpen, BookOpen } from "lucide-react"; 
 import styles from "./studentClass.module.css"; 
 import { auth } from "../../../../initializeFirebase"; 
 import { onAuthStateChanged } from "firebase/auth";
 
-// ... (Interfaces ClassMember, AssignedDeck, ClassDetails remain the same) ...
 interface ClassMember {
     uid: string;
     username: string;
@@ -35,10 +34,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
     const [classId, setClassId] = useState<string>("");
     const [activeTab, setActiveTab] = useState<'assignments' | 'members'>('assignments');
     
-    // UI State for Settings Menu
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const settingsRef = useRef<HTMLDivElement>(null);
-
     const [classData, setClassData] = useState<ClassDetails | null>(null);
     const [instructor, setInstructor] = useState<ClassMember | null>(null);
     const [students, setStudents] = useState<ClassMember[]>([]);
@@ -48,21 +43,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
     const [error, setError] = useState<string | null>(null);
 
     const router = useRouter();
-
-    // 1. Handle Click Outside to close menu
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
-                setIsSettingsOpen(false);
-            }
-        }
-        // Bind the event listener
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            // Unbind the event listener on clean up
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
 
     useEffect(() => {
         params.then((resolvedParams) => {
@@ -76,7 +56,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
         });
     }, [params]);
 
-    // ... (fetchClassData function remains exactly the same) ...
     const fetchClassData = useCallback(async (user: any, currentClassId: string) => {
         const idToken = await user.getIdToken();
         const headers = { 
@@ -155,8 +134,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
 
     const handleLeaveClass = async () => {
         if (!classId) return;
-        setIsSettingsOpen(false); // Close menu immediately
-
         if (confirm(`Are you sure you want to LEAVE "${classData?.className}"? You will lose access to assignments.`)) {
             setIsLoading(true);
             try {
@@ -164,9 +141,8 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 if (!user) { router.push('/login'); return; }
                 const idToken = await user.getIdToken();
 
-                // Call the Leave Endpoint
                 const response = await fetch(`http://localhost:5261/api/classes/${classId}/leave`, {
-                    method: 'POST', // Ensure your backend expects POST for this action
+                    method: 'POST',
                     headers: { 'Authorization': `Bearer ${idToken}` }
                 });
 
@@ -176,7 +152,7 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 }
 
                 alert('You have successfully left the class.');
-                router.push('/dashboard'); 
+                router.push('/student-classes'); 
             } catch (err: any) {
                 setError(err.message);
                 setIsLoading(false);
@@ -214,27 +190,16 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                     </div>
                 </div>
 
-                {/* UPDATED SETTINGS DROPDOWN */}
-                <div className={styles.settingsDropdown} ref={settingsRef}>
-                    <button 
-                        className={`${styles.settingsTrigger} ${isSettingsOpen ? styles.settingsTriggerActive : ''}`}
-                        onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                        aria-label="Class Settings"
-                    >
-                        <Settings size={24} />
-                    </button>
-
-                    {isSettingsOpen && (
-                        <div className={styles.dropdownContent}>
-                            <button className={styles.dropdownItem} onClick={handleLeaveClass} disabled={isLoading}>
-                                <DoorOpen size={16} /> Leave Class
-                            </button>
-                            <button className={styles.dropdownItem} onClick={() => alert("Archive functionality coming soon!")} disabled={isLoading}>
-                                <Archive size={16} /> Archive Class
-                            </button>
-                        </div>
-                    )}
-                </div>
+                {/* SOLID PURPLE BUTTON STYLE */}
+                <button 
+                    className={styles.leaveBtn} 
+                    onClick={handleLeaveClass} 
+                    disabled={isLoading}
+                    title="Leave Class"
+                >
+                    <DoorOpen size={20} />
+                    <span className={styles.leaveText}>Leave Class</span>
+                </button>
             </div>
 
             <div className={styles.tabsContainer}>
@@ -244,7 +209,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 >
                     Assignments
                 </button>
-                {/* Add Members tab if needed */}
             </div>
 
             <div className={styles.contentArea}>

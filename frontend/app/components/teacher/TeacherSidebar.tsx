@@ -45,16 +45,6 @@ export default function TeacherSidebar({ collapsed, onToggle }: SidebarProps) {
         </Link>
 
         <Link
-          href="/classes"
-          className={`${styles.navItem} ${
-            isActive("/classes") ? styles.navItemActive : ""
-          }`}
-        >
-          <GraduationCap size={18} />
-          <span className={styles.navLabel}>My Classes</span>
-        </Link>
-
-        <Link
           href="/teacher-library"
           className={`${styles.navItem} ${
             isActive("/teacher-library") ? styles.navItemActive : ""
@@ -62,6 +52,16 @@ export default function TeacherSidebar({ collapsed, onToggle }: SidebarProps) {
         >
           <Library size={18} />
           <span className={styles.navLabel}>Library</span>
+        </Link>
+
+        <Link
+          href="/classes"
+          className={`${styles.navItem} ${
+            isActive("/classes") ? styles.navItemActive : ""
+          }`}
+        >
+          <GraduationCap size={18} />
+          <span className={styles.navLabel}>My Classes</span>
         </Link>
 
         {/* <Link

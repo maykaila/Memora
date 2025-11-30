@@ -1,0 +1,260 @@
+.container {
+  padding: 2rem 3.5rem;
+  min-height: 100vh;
+  background-color: #f2d7ee;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.backBtn:hover {
+  text-decoration: underline;
+}
+
+/* Header Section */
+.headerCard {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative; /* For positioning settings btn */
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.iconContainer {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headerInfo {
+  flex-grow: 1;
+}
+
+.folderTitle {
+  margin: 0;
+  color: #4a1942;
+  font-size: 1.8rem;
+  line-height: 1.2;
+}
+
+.folderMeta {
+  margin: 5px 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Settings Button & Menu */
+.settingsWrapper {
+  position: relative;
+}
+
+.settingsBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.settingsBtn:hover {
+  background: #f5f5f5;
+  color: #4a1942;
+}
+
+.popupMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 160px;
+  z-index: 10;
+  overflow: hidden;
+  padding: 5px;
+}
+
+.menuItem {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #333;
+  border-radius: 8px;
+}
+
+.menuItem:hover {
+  background-color: #fdf2f8;
+  color: #4a1942;
+}
+
+.deleteItem {
+  color: #dc2626;
+}
+
+.deleteItem:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+/* Edit Mode Inputs */
+.editTitleInput {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #4a1942;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 4px 8px;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+.editActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.saveBtn, .cancelBtn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border: none;
+}
+
+.saveBtn {
+  background-color: #4a1942;
+  color: white;
+}
+
+.cancelBtn {
+  background-color: #ddd;
+  color: #333;
+}
+
+/* Decks Grid */
+.sectionTitle {
+  color: #4a1942;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.decksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.deckCard {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative; /* For delete button positioning */
+  border: 1px solid transparent;
+}
+
+.deckCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(74, 25, 66, 0.05);
+  border-color: #fce7f3;
+}
+
+.deckIconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background-color: #f3e8ff;
+  color: #7e22ce;
+}
+
+.deckTitle {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.deckDate {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.emptyState {
+  color: #666;
+  font-style: italic;
+}
+
+/* Remove Deck Button (Minus Circle) */
+.removeDeckBtn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  z-index: 5;
+  transition: transform 0.2s;
+}
+
+.removeDeckBtn:hover {
+  transform: scale(1.1);
+}
+
+.primaryBtn {
+  background: #4a1942;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(74, 25, 66, 0.2);
+  transition: transform 0.1s;
+}

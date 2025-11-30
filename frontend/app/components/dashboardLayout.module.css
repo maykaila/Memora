@@ -1,7 +1,7 @@
 /* ---------- Dashboard Layout ---------- */
 
 .dashboardContent {
-  padding: 2rem 3.5rem 3rem;
+  padding: 1rem 3.5rem 3rem;
   min-height: calc(100vh - 140px);
   background: #f2d7ee; /* Main Pink Background */
 }

@@ -67,16 +67,51 @@ namespace Memora.Services
             return true;
         }
 
-        // --- REMOVE A SET FROM A FOLDER ---
-        public async Task<bool> RemoveSetFromFolderAsync(string folderId, string setId, string userId)
+        public async Task<bool> UpdateFolderAsync(string folderId, string userId, string newTitle, string? newDescription)
         {
-            DocumentReference folderRef = _foldersCollection.Document(folderId);
-            DocumentSnapshot snapshot = await folderRef.GetSnapshotAsync();
+            DocumentReference docRef = _foldersCollection.Document(folderId);
+            DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
+            
+            if (!snapshot.Exists) return false;
+            
+            Folder folder = snapshot.ConvertTo<Folder>();
+            if (folder.UserId != userId) return false; // Security check
+
+            var updates = new Dictionary<string, object>
+            {
+                { "title", newTitle }
+            };
+            
+            if (newDescription != null) updates.Add("description", newDescription);
+
+            await docRef.UpdateAsync(updates);
+            return true;
+        }
+
+        // --- NEW: DELETE FOLDER ---
+        public async Task<bool> DeleteFolderAsync(string folderId, string userId)
+        {
+            DocumentReference docRef = _foldersCollection.Document(folderId);
+            DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
 
             if (!snapshot.Exists) return false;
 
             Folder folder = snapshot.ConvertTo<Folder>();
             if (folder.UserId != userId) return false; // Security check
+
+            await docRef.DeleteAsync();
+            return true;
+        }
+
+        // --- NEW: REMOVE SET FROM FOLDER ---
+        public async Task<bool> RemoveSetFromFolderAsync(string folderId, string setId, string userId)
+        {
+            DocumentReference folderRef = _foldersCollection.Document(folderId);
+            DocumentSnapshot snapshot = await folderRef.GetSnapshotAsync();
+            if (!snapshot.Exists) return false;
+
+            Folder folder = snapshot.ConvertTo<Folder>();
+            if (folder.UserId != userId) return false;
 
             await folderRef.UpdateAsync("flashcard_set_ids", FieldValue.ArrayRemove(setId));
             return true;

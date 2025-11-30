@@ -5,8 +5,9 @@ import './profilesettings.css';
 import { auth } from '../../initializeFirebase'; 
 import { User, signOut } from 'firebase/auth'; 
 import { uploadProfilePicture, updateUserProfile } from '../../services/userService';
+// IMPORT THE MODAL COMPONENT
+import ChangePassword from './changepass'; 
 
-// Port 5261 as per your leader
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5261";
 
 interface ProfileSettingsProps {
@@ -20,12 +21,14 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
   
   // FETCHED DATA STATES
   const [displayName, setDisplayName] = useState("Loading..."); 
-  // NEW: State for Role
   const [role, setRole] = useState(""); 
   const [email, setEmail] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // --- FIX: ADDED STATE FOR PASSWORD MODAL ---
+  const [isChangePassOpen, setIsChangePassOpen] = useState(false);
 
   // 1. FETCH DATA
   useEffect(() => {
@@ -38,9 +41,8 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
 
         if (response.ok) {
           const data = await response.json();
-          // Adjust casing based on your API response
           const backendName = data.username || data.Username || data.displayName; 
-          const backendRole = data.role || data.Role || "Student"; // Default to Student
+          const backendRole = data.role || data.Role || "Student"; 
           
           setDisplayName(backendName || currentUser.displayName || "User");
           setRole(backendRole);
@@ -99,9 +101,9 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
   // 4. HANDLE LOGOUT
   const handleLogoutAction = async () => {
     try {
-      await signOut(auth); // Actually sign out from Firebase
-      if (onLogout) onLogout(); // Update parent UI state
-      onClose(); // Close modal
+      await signOut(auth); 
+      if (onLogout) onLogout(); 
+      onClose(); 
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -118,24 +120,19 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
     try {
       const token = await user.getIdToken();
       
-      // A. Delete from Backend Database FIRST
       const response = await fetch(`${API_BASE_URL}/api/users/${user.uid}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      // CRITICAL CHECK: If backend fails, DO NOT delete Firebase account
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Backend deletion failed: ${response.status} ${errorText}`);
       }
 
-      // B. Delete from Firebase Auth (Only if Step A worked)
       await user.delete();
-
-      // C. Logout/Close
       alert("Account successfully deleted.");
-      if (onLogout) onLogout();
+      if (onLogout) onLogout(); 
       
     } catch (error: any) {
       console.error("Delete Error:", error);
@@ -153,69 +150,109 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
   if (!isOpen) return null;
 
   return (
-    <div className="profile-overlay" onClick={onClose}>
-      <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="close-btn" onClick={onClose}>&times;</button>
+    <>
+      <div className="profile-overlay" onClick={onClose}>
+        <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+          <button className="close-btn" onClick={onClose}>&times;</button>
 
-        <div className="profile-header-card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '20px', padding: '20px' }}>
-          
-          {/* Picture Section */}
-          <div className="avatar-container" onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer' }}>
-            <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" style={{ display: 'none' }} />
+          <div className="profile-header-card" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '20px', padding: '20px' }}>
             
-            <div className="avatar-circle" style={{ backgroundImage: photoPreview ? `url(${photoPreview})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              {!photoPreview && <span style={{color:'white', fontSize:'2rem'}}>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>}
+            {/* Picture Section */}
+            <div className="avatar-container" onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer' }}>
+              <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" style={{ display: 'none' }} />
+              
+              <div className="avatar-circle" style={{ backgroundImage: photoPreview ? `url(${photoPreview})` : 'none', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                {!photoPreview && <span style={{color:'white', fontSize:'2rem'}}>{displayName ? displayName.charAt(0).toUpperCase() : 'U'}</span>}
+              </div>
+            </div>
+
+            {/* Name & Role Section */}
+            <div className="username-display">
+               <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>
+                 Hello, {displayName}!
+               </h2>
+               <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>
+                 Role: {role}
+               </div>
             </div>
           </div>
 
-          {/* Name & Role Section */}
-          <div className="username-display">
-             <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>
-               Hello, {displayName}!
-             </h2>
-             
-             {/* UPDATED: Displaying Role Here */}
-             <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>
-                Role: {role}
-             </div>
+          <div className="info-card">
+            <label className="info-label">Email:</label>
+            <div className="info-value">{email}</div> 
           </div>
-        </div>
 
-        <div className="info-card">
-          <label className="info-label">Email:</label>
-          <div className="info-value">{email}</div> 
-        </div>
-
-        <div className="info-card">
-          <label className="info-label">Password:</label>
-          <div className="info-value">*******</div>
-        </div>
-
-        {/* Action Buttons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-            <button className="logout-btn" onClick={handleLogoutAction}>Logout</button>
+          {/* 3. UPDATED PASSWORD SECTION */}
+          {/* We use position: relative here so the button can be absolutely positioned inside this box */}
+          <div className="info-card" style={{ position: 'relative' }}>
+            <label className="info-label">Password:</label>
+            <div className="info-value">*******</div>
             
+            {/* The Kebab Menu Button */}
             <button 
-                onClick={handleDeleteAccount}
-                style={{
-                    backgroundColor: 'transparent',
-                    border: '1px solid #ff4d4d',
-                    color: '#ff4d4d',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fff0f0'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              onClick={() => setIsChangePassOpen(true)}
+              style={{
+                position: 'absolute',  // Takes it out of the text flow
+                right: '15px',         // Sticks it to the right edge
+                top: '50%',            // Pushes top edge to the vertical center
+                transform: 'translateY(-50%)', // Pulls it back up by half its height to center it perfectly
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'background 0.2s'
+              }}
+              title="Change Password"
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
-                Delete Account
+              {/* SVG for Three Vertical Dots */}
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
             </button>
-        </div>
+          </div>
 
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+              <button className="logout-btn" onClick={handleLogoutAction}>Logout</button>
+              
+              <button 
+                  onClick={handleDeleteAccount}
+                  style={{
+                      backgroundColor: 'transparent',
+                      border: '1px solid #ff4d4d',
+                      color: '#ff4d4d',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fff0f0'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                  Delete Account
+              </button>
+          </div>
+
+        </div>
       </div>
-    </div>
+      
+      {/* RENDER THE POPUP MODAL IF OPEN */}
+      {isChangePassOpen && (
+        <ChangePassword 
+            isOpen={isChangePassOpen} 
+            onClose={() => setIsChangePassOpen(false)} 
+        />
+      )}
+    </>
   );
 };
 

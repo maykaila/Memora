@@ -204,5 +204,35 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpGet("{classId}/assignments/me")]
+        public async Task<IActionResult> GetStudentAssignments(string classId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                // Reuse the service that gets decks. 
+                // In the future, you would fetch 'StudentProgress' here and merge it.
+                var decks = await _classService.GetDecksInClassAsync(classId);
+                
+                // Map to the DTO structure the frontend expects
+                var assignments = decks.Select(d => new 
+                {
+                    SetId = d.SetId,
+                    Title = d.Title,
+                    DateAssigned = d.DateCreated, // Or a specific assignment date if you add that later
+                    Progress = 0, // Default to 0 for now
+                    Status = "Not Started"
+                });
+
+                return Ok(assignments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

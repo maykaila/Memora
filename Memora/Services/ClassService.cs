@@ -188,5 +188,18 @@ namespace Memora.Services
             }
             return "Unknown Instructor";
         }
+
+        public async Task<bool> LeaveClassAsync(string studentId, string classId)
+        {
+            DocumentReference docRef = _classesCollection.Document(classId);
+            DocumentSnapshot snap = await docRef.GetSnapshotAsync();
+
+            if (!snap.Exists) return false;
+
+            // Use ArrayRemove to atomically remove the studentId from the list
+            await docRef.UpdateAsync("student_ids", FieldValue.ArrayRemove(studentId));
+
+            return true;
+        }
     }
 }

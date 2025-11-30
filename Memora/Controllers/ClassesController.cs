@@ -266,5 +266,30 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpPost("{classId}/leave")]
+        public async Task<IActionResult> LeaveClass(string classId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync();
+                if (userId == null) return Unauthorized();
+
+                bool success = await _classService.LeaveClassAsync(userId, classId);
+
+                if (success)
+                {
+                    return Ok(new { message = "Successfully left the class." });
+                }
+                else
+                {
+                    return NotFound(new { message = "Class not found." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

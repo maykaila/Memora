@@ -67,42 +67,53 @@
 .settingsDropdown {
   position: relative;
   display: inline-block;
-  cursor: pointer;
+  /* cursor: pointer;  <-- Moved cursor to the icon wrapper below */
   z-index: 10;
-  background: none;
-  border: none;
-  color: #999;
-  padding: 8px;
-  border-radius: 50%;
-  transition: background 0.2s;
 }
 
-.settingsDropdown:hover{
+/* NEW: Wrapper for the icon to handle interactions */
+.settingsTrigger {
+  padding: 8px;
+  border-radius: 50%;
+  color: #999;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex; /* Centers the icon */
+  transition: background 0.2s, color 0.2s;
+}
+
+.settingsTrigger:hover, 
+.settingsTriggerActive { /* Added active state */
   background: #f5f5f5;
   color: #4a1942;
 }
 
 .dropdownContent {
-  display: none;
+  /* display: none;  <-- REMOVED THIS */
   position: absolute;
   top: 115%;
   right: 0;
-  min-width: 150px;
+  min-width: 160px; /* Slightly wider for better text fit */
   background: #f2d7ee;
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
   border: 1px solid #ddd0db;
   overflow: hidden;
   z-index: 45;
+  animation: fadeIn 0.15s ease-out; /* Optional: adds a nice pop */
 }
 
-.settingsDropdown:hover .dropdownContent {
-  display: block;
+/* REMOVED: .settingsDropdown:hover .dropdownContent { display: block; } */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .dropdownItem {
   width: 100%;
-  padding: 0.6rem 0.8rem;
+  padding: 0.8rem 1rem; /* Little more padding */
   border: none;
   background: #f2d7ee;
   text-align: left;
@@ -110,14 +121,16 @@
   font-size: 0.95rem;
   color: #3b0f34;
   font-weight: 600;
-  margin: 0.1rem 0;
+  display: flex; /* Align icon and text */
+  align-items: center;
+  gap: 10px;
+  margin: 0;
   transition: all 0.2s ease;
 }
 
 .dropdownItem:hover {
   background: #f7e8ff;
   color: #4a1942;
-  transform: translateY(-1px);
 }
 
 /* ==================================== */

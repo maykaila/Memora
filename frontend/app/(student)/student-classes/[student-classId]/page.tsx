@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react"; // Added useRef
 import { useRouter } from "next/navigation";
-import { Settings, DoorOpen, Archive, User, BookOpen } from "lucide-react";
+import { Settings, DoorOpen, Archive, BookOpen } from "lucide-react"; // Check your imports
 import styles from "./studentClass.module.css"; 
 import { auth } from "../../../../initializeFirebase"; 
 import { onAuthStateChanged } from "firebase/auth";
 
+// ... (Interfaces ClassMember, AssignedDeck, ClassDetails remain the same) ...
 interface ClassMember {
     uid: string;
     username: string;
     email: string;
     role: "student" | "teacher"; 
 }
-
 interface AssignedDeck {
     setId: string;
     title: string;
@@ -21,13 +21,12 @@ interface AssignedDeck {
     progress: number; 
     status: 'Not Started' | 'In Progress' | 'Completed';
 }
-
 interface ClassDetails {
     classId: string;
     className: string;
     classCode: string;
     instructorId: string;
-    teacherName?: string; // <--- ADDED THIS
+    teacherName?: string;
     description?: string;
     studentIds: string[];
 }
@@ -36,6 +35,10 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
     const [classId, setClassId] = useState<string>("");
     const [activeTab, setActiveTab] = useState<'assignments' | 'members'>('assignments');
     
+    // UI State for Settings Menu
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const settingsRef = useRef<HTMLDivElement>(null);
+
     const [classData, setClassData] = useState<ClassDetails | null>(null);
     const [instructor, setInstructor] = useState<ClassMember | null>(null);
     const [students, setStudents] = useState<ClassMember[]>([]);
@@ -46,20 +49,34 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
 
     const router = useRouter();
 
+    // 1. Handle Click Outside to close menu
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+                setIsSettingsOpen(false);
+            }
+        }
+        // Bind the event listener
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            // Unbind the event listener on clean up
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
     useEffect(() => {
         params.then((resolvedParams) => {
             const id = resolvedParams['student-classId'] || resolvedParams.classId;
-            
             if (id) {
                 setClassId(id);
             } else {
-                console.error("Could not find Class ID in URL parameters", resolvedParams);
                 setError("Invalid URL parameters");
                 setIsLoading(false);
             }
         });
     }, [params]);
 
+    // ... (fetchClassData function remains exactly the same) ...
     const fetchClassData = useCallback(async (user: any, currentClassId: string) => {
         const idToken = await user.getIdToken();
         const headers = { 
@@ -67,77 +84,59 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
             'Authorization': `Bearer ${idToken}` 
         };
 
-        // 1. Fetch Class Details
         const classRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}`, { headers });
-        if (!classRes.ok) {
-            throw new Error("Class not found or access denied.");
-        }
+        if (!classRes.ok) throw new Error("Class not found or access denied.");
         const rawData = await classRes.json();
         
-        // Map the response (Including the new TeacherName)
         const classDetails: ClassDetails = {
             classId: rawData.classId || rawData.ClassId,
             className: rawData.className || rawData.ClassName || "Untitled Class",
             classCode: rawData.classCode || rawData.ClassCode || "NO-CODE",
             description: rawData.description || rawData.Description,
-            // Important: Backend sends 'TeacherId', so we map that to instructorId
             instructorId: rawData.teacherId || rawData.TeacherId || rawData.instructorId, 
             studentIds: rawData.studentIds || rawData.StudentIds || [],
-            // Capture the name we just added to the backend
             teacherName: rawData.teacherName || rawData.TeacherName 
         };
         setClassData(classDetails);
-        
-        // Set Instructor immediately using the name from ClassDetails
         setInstructor({
             uid: classDetails.instructorId,
             username: classDetails.teacherName || "Instructor", 
-            email: "", // Email might not be available yet, that's okay
+            email: "", 
             role: "teacher"
         });
 
-        // 2. Fetch Assignments
         try {
             const assignmentsRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/assignments/me`, { headers });
             if (assignmentsRes.ok) {
                 const rawAssignments = await assignmentsRes.json();
-                const mappedAssignments: AssignedDeck[] = rawAssignments.map((a: any) => ({
+                setAssignments(rawAssignments.map((a: any) => ({
                     setId: a.setId || a.SetId,
                     title: a.title || a.Title || "Untitled Assignment",
                     dateAssigned: a.dateAssigned || a.DateAssigned || new Date().toISOString(),
                     progress: a.progress || 0,
                     status: (a.progress === 100) ? 'Completed' : (a.progress > 0) ? 'In Progress' : 'Not Started',
-                }));
-                setAssignments(mappedAssignments);
+                })));
             } else {
                 setAssignments([]);
             }
         } catch (e) {
-            console.warn("Could not fetch assignments", e);
             setAssignments([]);
         }
 
-        // 3. Fetch Members (Students)
-        // Note: Your GetStudentsInClass endpoint likely only returns students, not the teacher.
         const membersRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/students`, { headers });
         if (membersRes.ok) {
             const rawMembers = await membersRes.json();
-            const allMembers: ClassMember[] = rawMembers.map((m: any) => ({
+            setStudents(rawMembers.map((m: any) => ({
                 uid: m.uid || m.userId || m.UserId,
                 username: m.username || m.Username || "Unknown",
                 email: m.email || m.Email || "",
                 role: 'student' 
-            }));
-            setStudents(allMembers);
-        } else {
-            setStudents([]); 
+            })));
         }
-
     }, []);
 
     useEffect(() => {
         if (!classId) return;
-
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
@@ -151,25 +150,31 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 router.push("/login");
             }
         });
-
         return () => unsubscribe();
     }, [classId, router, fetchClassData]);
 
     const handleLeaveClass = async () => {
         if (!classId) return;
-        if (confirm("Are you sure you want to LEAVE this class?")) {
+        setIsSettingsOpen(false); // Close menu immediately
+
+        if (confirm(`Are you sure you want to LEAVE "${classData?.className}"? You will lose access to assignments.`)) {
             setIsLoading(true);
             try {
                 const user = auth.currentUser;
                 if (!user) { router.push('/login'); return; }
                 const idToken = await user.getIdToken();
-                // Ensure this endpoint exists in your controller (it was named 'DeleteClass' in previous snippets, you might need to add a 'leave' endpoint or use delete if you intended that)
-                // For now assuming you handle the logic:
+
+                // Call the Leave Endpoint
                 const response = await fetch(`http://localhost:5261/api/classes/${classId}/leave`, {
-                    method: 'POST',
+                    method: 'POST', // Ensure your backend expects POST for this action
                     headers: { 'Authorization': `Bearer ${idToken}` }
                 });
-                if (!response.ok) throw new Error("Failed to leave class.");
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || "Failed to leave class.");
+                }
+
                 alert('You have successfully left the class.');
                 router.push('/dashboard'); 
             } catch (err: any) {
@@ -193,33 +198,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
 
     const studentCount = classData.studentIds?.length ?? 0;
 
-    const renderAssignments = () => (
-        <div className={styles.assignmentsGrid}>
-            {assignments.length > 0 ? (
-                assignments.map((assignment) => (
-                    <div 
-                        key={assignment.setId} 
-                        className={styles.assignmentCard}
-                        onClick={() => handleAccessDeck(assignment.setId)}
-                    >
-                        <div className={styles.cardIcon}>
-                            <BookOpen size={24} strokeWidth={2.5} />
-                        </div>
-                        
-                        <div className={styles.cardContent}>
-                            <h3 className={styles.cardTitle}>{assignment.title}</h3>
-                            <p className={styles.cardDate}>Assigned: {formatDate(assignment.dateAssigned)}</p>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <div className={styles.emptyState}>
-                    <p>No decks have been assigned to this class yet.</p>
-                </div>
-            )}
-        </div>
-    );
-
     return (
         <div className={styles.page}>
             <div className={styles.header}>
@@ -230,24 +208,32 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                             Code: {classData.classCode}
                         </span>
                         <span className={styles.infoSeparator}>|</span>
-                        
-                        {/* INSTRUCTOR NAME DISPLAY */}
                         <span>Instructor: {instructor?.username || "Loading..."}</span>
-                        
                         <span className={styles.infoSeparator}>|</span>
                         <span>{studentCount} Members</span>
                     </div>
                 </div>
-                <div className={styles.settingsDropdown}>
-                    <Settings size={24} style={{ cursor: 'pointer' }} />
-                    <div className={styles.dropdownContent}>
-                        <button className={styles.dropdownItem} onClick={handleLeaveClass} disabled={isLoading}>
-                            <DoorOpen size={16} /> Leave Class
-                        </button>
-                        <button className={styles.dropdownItem} onClick={() => alert("Archive functionality coming soon!")} disabled={isLoading}>
-                            <Archive size={16} /> Archive Class
-                        </button>
-                    </div>
+
+                {/* UPDATED SETTINGS DROPDOWN */}
+                <div className={styles.settingsDropdown} ref={settingsRef}>
+                    <button 
+                        className={`${styles.settingsTrigger} ${isSettingsOpen ? styles.settingsTriggerActive : ''}`}
+                        onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                        aria-label="Class Settings"
+                    >
+                        <Settings size={24} />
+                    </button>
+
+                    {isSettingsOpen && (
+                        <div className={styles.dropdownContent}>
+                            <button className={styles.dropdownItem} onClick={handleLeaveClass} disabled={isLoading}>
+                                <DoorOpen size={16} /> Leave Class
+                            </button>
+                            <button className={styles.dropdownItem} onClick={() => alert("Archive functionality coming soon!")} disabled={isLoading}>
+                                <Archive size={16} /> Archive Class
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -258,10 +244,33 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 >
                     Assignments
                 </button>
+                {/* Add Members tab if needed */}
             </div>
 
             <div className={styles.contentArea}>
-                {renderAssignments()}
+                <div className={styles.assignmentsGrid}>
+                    {assignments.length > 0 ? (
+                        assignments.map((assignment) => (
+                            <div 
+                                key={assignment.setId} 
+                                className={styles.assignmentCard}
+                                onClick={() => handleAccessDeck(assignment.setId)}
+                            >
+                                <div className={styles.cardIcon}>
+                                    <BookOpen size={24} strokeWidth={2.5} />
+                                </div>
+                                <div className={styles.cardContent}>
+                                    <h3 className={styles.cardTitle}>{assignment.title}</h3>
+                                    <p className={styles.cardDate}>Assigned: {formatDate(assignment.dateAssigned)}</p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <p>No decks have been assigned to this class yet.</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

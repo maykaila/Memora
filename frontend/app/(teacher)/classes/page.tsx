@@ -82,6 +82,18 @@ export default function MyClassesPage() {
     return () => unsubscribe();
   }, [router, fetchClasses]);
 
+  // Re-fetches data every 4 seconds to update student counts automatically
+  useEffect(() => {
+    const interval = setInterval(() => {
+        if (auth.currentUser) {
+            fetchClasses(auth.currentUser); // Silent fetch (no loading spinner)
+        }
+    }, 4000); 
+
+    return () => clearInterval(interval);
+  }, [fetchClasses]);
+  // ------------------------------
+
   const handleRefresh = async () => {
     if (auth.currentUser) await fetchClasses(auth.currentUser);
   };

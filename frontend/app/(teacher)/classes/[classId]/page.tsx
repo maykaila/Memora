@@ -148,6 +148,19 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     return () => unsubscribe();
   }, [classId, router, fetchClassData]);
 
+  // --- NEW: REAL-TIME POLLING ---
+  useEffect(() => {
+    if (!classId) return;
+    const interval = setInterval(() => {
+        if (auth.currentUser) {
+            fetchClassData(auth.currentUser, classId);
+        }
+    }, 4000); // Poll every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [classId, fetchClassData]);
+  // ------------------------------
+  
   // 4. Refresh Handler passed to modal
   const handleRefresh = async () => {
     if (auth.currentUser && classId) {

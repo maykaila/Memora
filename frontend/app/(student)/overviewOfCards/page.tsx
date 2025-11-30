@@ -2,115 +2,183 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { db } from "../../../initializeFirebase";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
   const setId = searchParams.get("id");
   const router = useRouter();
 
-  const [title, setTitle] = useState("Loading...");
-  const [description, setDescription] = useState("");
-  const [cards, setCards] = useState([]);
+  const [setData, setSetData] = useState<any>(null);
+  const [cards, setCards] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Fetch flashcard set info */
+  const fetchSetDetails = async (id: string) => {
+    const docRef = doc(db, "flashcardSets", id);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? docSnap.data() : null;
+  };
+
+  /** Fetch all cards inside the set */
+  const fetchCards = async (id: string) => {
+    const cardsRef = collection(db, "flashcardSets", id, "cards");
+    const snapshot = await getDocs(cardsRef);
+
+    const list: any[] = [];
+    snapshot.forEach((c) => list.push({ id: c.id, ...c.data() }));
+    return list;
+  };
 
   useEffect(() => {
-    if (!setId) return;
+    const loadData = async () => {
+      if (!setId) return;
 
-    async function fetchSet() {
       try {
-        const res = await fetch(`http://localhost:5261/api/flashcardsets/${setId}`);
+        const [setInfo, cardList] = await Promise.all([
+          fetchSetDetails(setId),
+          fetchCards(setId),
+        ]);
 
-        if (!res.ok) {
-          console.error("Failed to fetch set");
+        if (!setInfo) {
+          setError("Flashcard set not found.");
           return;
         }
 
-        const data = await res.json();
-
-        setTitle(data.title);
-        setDescription(data.description || "No description.");
-        setCards(data.cards || []);
+        setSetData(setInfo);
+        setCards(cardList);
       } catch (err) {
-        console.error("Error loading set:", err);
+        console.error(err);
+        setError("Failed to load flashcard set.");
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
-    fetchSet();
+    loadData();
   }, [setId]);
 
+  if (loading) {
+    return <PageContainer><p>Loading flashcards...</p></PageContainer>;
+  }
+
+  if (error) {
+    return <PageContainer><p style={{ color: "red" }}>{error}</p></PageContainer>;
+  }
+
   return (
-    <div style={{ padding: "40px" }}>
-      <div
-        style={{
-          backgroundColor: "#fff",
-          padding: "40px",
-          borderRadius: "12px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-        }}
-      >
-        {/* Title */}
-        <h1 style={{ fontSize: "28px", marginBottom: "10px" }}>{title}</h1>
+    <PageContainer>
+      
+      {/* FLASHCARD SET BOX */}
+      <div style={cardContainer}>
+        <h1 style={titleText}>{setData.title}</h1>
 
-        {/* Description */}
-        <p style={{ color: "#666", marginBottom: "30px" }}>{description}</p>
+        <p style={subtitleText}>{setData.description}</p>
 
-        {/* Buttons */}
-        <div style={{ marginBottom: "30px", display: "flex", gap: "16px" }}>
-          <button
-            onClick={() => router.push(`/flashcards/practice?id=${setId}`)}
-            style={buttonStyle}
-          >
-            Flashcards
-          </button>
+        {setData.tag_ids && (
+          <p style={tagStyle}>{setData.tag_ids}</p>
+        )}
 
-          <button
-            onClick={() => router.push(`/flashcards/mcq?id=${setId}`)}
-            style={buttonStyle}
-          >
-            Multiple Choice
-          </button>
-
-          <button
-            onClick={() => router.push(`/flashcards/quiz?id=${setId}`)}
-            style={buttonStyle}
-          >
-            Quiz
-          </button>
+        {/* BUTTON GROUP */}
+        <div style={buttonGroup}>
+          <PrimaryButton label="Flashcards" onClick={() => router.push(`/flashcards?id=${setId}`)} />
+          <PrimaryButton label="Multiple Choice" onClick={() => router.push(`/multipleChoice?id=${setId}`)} />
+          <PrimaryButton label="Quiz" onClick={() => router.push(`/quiz?id=${setId}`)} />
         </div>
 
-        {/* List of terms */}
-        <h2 style={{ fontSize: "20px", marginBottom: "16px" }}>Terms</h2>
+        <h2 style={sectionTitle}>Terms & Definitions</h2>
 
+        {/* TERMS LIST */}
         {cards.length === 0 ? (
-          <p>No flashcards available.</p>
+          <p style={{ color: "#999" }}>No cards available.</p>
         ) : (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {cards.map((card, index) => (
-              <li
-                key={index}
-                style={{
-                  padding: "16px",
-                  marginBottom: "12px",
-                  backgroundColor: "#f7f7ff",
-                  borderRadius: "8px",
-                }}
-              >
-                <strong>{card.term}</strong>
-                <p style={{ color: "#666", marginTop: "4px" }}>{card.definition}</p>
-              </li>
+          <div style={{ marginTop: 10 }}>
+            {cards.map((card) => (
+              <div key={card.id} style={termItem}>
+                <strong style={{ fontSize: 16 }}>{card.term}</strong>
+                <p style={{ marginTop: 5, color: "#444" }}>{card.definition}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
-const buttonStyle = {
-  padding: "10px 20px",
-  borderRadius: "6px",
-  border: "none",
-  backgroundColor: "#6a4dc4",
-  color: "white",
-  cursor: "pointer",
-  fontSize: "15px",
+/* ============================= */
+/*      REUSABLE COMPONENTS      */
+/* ============================= */
+
+const PageContainer = ({ children }: any) => (
+  <div style={{ padding: 40, display: "flex", justifyContent: "center" }}>
+    <div style={{ width: "100%", maxWidth: 900 }}>{children}</div>
+  </div>
+);
+
+const PrimaryButton = ({ label, onClick }: { label: string; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    style={{
+      padding: "10px 20px",
+      backgroundColor: "#4a1942",
+      color: "white",
+      border: "none",
+      borderRadius: 8,
+      cursor: "pointer",
+      fontSize: 14,
+      transition: "0.2s",
+    }}
+    onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
+    onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+  >
+    {label}
+  </button>
+);
+
+/* ============================ */
+/*            STYLES            */
+/* ============================ */
+
+const cardContainer = {
+  backgroundColor: "#fff",
+  padding: 40,
+  borderRadius: 12,
+  boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+};
+
+const titleText = {
+  fontSize: 28,
+  fontWeight: 700,
+  marginBottom: 10,
+};
+
+const subtitleText = {
+  color: "#555",
+  marginBottom: 5,
+};
+
+const tagStyle = {
+  color: "#6a0dad",
+  fontStyle: "italic",
+  marginBottom: 20,
+};
+
+const buttonGroup = {
+  display: "flex",
+  gap: 15,
+  margin: "20px 0 30px 0",
+};
+
+const sectionTitle = {
+  fontSize: 20,
+  marginTop: 20,
+  marginBottom: 10,
+};
+
+const termItem = {
+  padding: "12px 0",
+  borderBottom: "1px solid #eee",
 };

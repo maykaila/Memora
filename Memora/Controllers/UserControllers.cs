@@ -77,10 +77,38 @@ namespace Memora.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
-            var user = await _userService.GetUserAsync(id);
-            if (user == null) return NotFound();
-            return Ok(user);
+            try
+            {
+                // Check Authorization header
+                string authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized(new { message = "No token provided." });
+                }
+
+                string idToken = authHeader.Split(" ")[1];
+
+                // Verify token
+                FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+
+                // Ensure user can only access their own data
+                if (decodedToken.Uid != id)
+                {
+                    return Unauthorized(new { message = "Unauthorized user." });
+                }
+
+                // Get user from Firestore
+                var user = await _userService.GetUserAsync(id);
+                if (user == null) return NotFound();
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error verifying token", error = ex.Message });
+            }
         }
+
 
         // For Streak -------------------------------------------------------------------------------------------
         [HttpPost("checkin")]

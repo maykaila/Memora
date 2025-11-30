@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './profilesettings.css'; 
 import { auth } from '../../initializeFirebase'; 
-import { User, signOut } from 'firebase/auth'; // Import signOut
+import { User, signOut } from 'firebase/auth'; 
 import { uploadProfilePicture, updateUserProfile } from '../../services/userService';
 
 // Port 5261 as per your leader
@@ -20,6 +20,8 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
   
   // FETCHED DATA STATES
   const [displayName, setDisplayName] = useState("Loading..."); 
+  // NEW: State for Role
+  const [role, setRole] = useState(""); 
   const [email, setEmail] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,19 +33,24 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
       try {
         const token = await currentUser.getIdToken();
         const response = await fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
           const data = await response.json();
           // Adjust casing based on your API response
           const backendName = data.username || data.Username || data.displayName; 
+          const backendRole = data.role || data.Role || "Student"; // Default to Student
+          
           setDisplayName(backendName || currentUser.displayName || "User");
+          setRole(backendRole);
         } else {
           setDisplayName(currentUser.displayName || "User");
+          setRole("Student");
         }
       } catch (err) {
         setDisplayName(currentUser.displayName || "User");
+        setRole("Student");
       }
     };
 
@@ -89,7 +96,7 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
     }
   };
 
-  // 4. HANDLE LOGOUT (Fixed)
+  // 4. HANDLE LOGOUT
   const handleLogoutAction = async () => {
     try {
       await signOut(auth); // Actually sign out from Firebase
@@ -138,7 +145,6 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
         await signOut(auth);
         if (onLogout) onLogout(); 
       } else {
-        // If the backend failed, we tell the user here
         alert("Failed to delete account data. Please contact support or try again.\nDetails: " + error.message);
       }
     }
@@ -162,11 +168,16 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
             </div>
           </div>
 
-          {/* Name Section */}
+          {/* Name & Role Section */}
           <div className="username-display">
              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>
-               {displayName}
+               Hello, {displayName}!
              </h2>
+             
+             {/* UPDATED: Displaying Role Here */}
+             <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '4px', textTransform: 'capitalize' }}>
+                Role: {role}
+             </div>
           </div>
         </div>
 
@@ -182,7 +193,6 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ isOpen, onClose, onLo
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-            {/* UPDATED LOGOUT BUTTON */}
             <button className="logout-btn" onClick={handleLogoutAction}>Logout</button>
             
             <button 

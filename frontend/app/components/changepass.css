@@ -1,0 +1,169 @@
+/* changepass.css */
+
+/* Darkened purple overlay with blur */
+.cp-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(74, 25, 66, 0.4); /* Memora Purple tint */
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  animation: cpFadeIn 0.2s ease-out;
+}
+
+/* Modal Card - Matches .headerCard and .deckCard vibe */
+.cp-modal {
+  background: white;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 50px rgba(74, 25, 66, 0.2);
+  border: 1px solid #fce7f3; /* Very light pink border */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  animation: cpSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Close Button */
+.cp-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #9ca3af; /* Light grey */
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.cp-close-btn:hover {
+  background-color: #f3e8ff; /* Light purple hover */
+  color: #4a1942;
+}
+
+/* Header */
+.cp-title {
+  margin: 0 0 1.5rem 0;
+  color: #4a1942; /* Primary Brand Color */
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Messages */
+.cp-message {
+  padding: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  font-weight: 500;
+}
+
+.cp-error {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
+}
+
+.cp-success {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #dcfce7;
+}
+
+/* Form Layout */
+.cp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.cp-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cp-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a1942; /* Deep Purple */
+  margin-left: 4px;
+}
+
+/* Inputs - Soft, clean look */
+.cp-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #1f2937;
+  background-color: #fff;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.cp-input:focus {
+  border-color: #4a1942;
+  box-shadow: 0 0 0 3px rgba(74, 25, 66, 0.1);
+  background-color: #fdf2f8; /* Very light pink tint on focus */
+}
+
+/* Primary Button */
+.cp-submit-btn {
+  margin-top: 10px;
+  padding: 14px;
+  background-color: #4a1942; /* Primary Brand Color */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(74, 25, 66, 0.2);
+  transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.2s;
+}
+
+.cp-submit-btn:hover:not(:disabled) {
+  background-color: #5e1d53;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(74, 25, 66, 0.3);
+}
+
+.cp-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cp-submit-btn:disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Animations */
+@keyframes cpFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cpSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

@@ -86,6 +86,37 @@ namespace Memora.Services
         }
         // For Streak ----------------------------------------------------------------------------------
 
+
+        //* 
+        //* for delete
+
+     
+        // --- NEW DELETE METHOD (Updated for Firestore) ---
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            // 1. Get reference to the user document
+            DocumentReference userRef = _db.Collection("users").Document(userId);
+            
+            // 2. Check if user exists
+            DocumentSnapshot snapshot = await userRef.GetSnapshotAsync();
+            if (!snapshot.Exists)
+            {
+                return false;
+            }
+
+            // 3. Delete the user document
+            // Note: In Firestore, this does NOT automatically delete subcollections or related documents.
+            // If you have a separate "FlashcardSets" collection, those documents will remain unless you query and delete them here manually.
+            await userRef.DeleteAsync();
+            
+            return true;
+        }
+
+        //* end for delete
+        // For Streak ----------------------------------------------------------------------------------
+       
+
+
         public async Task<User?> GetUserByIdAsync(string uid)
         {
             DocumentSnapshot snapshot = await _db.Collection("users").Document(uid).GetSnapshotAsync();

@@ -27,6 +27,7 @@ interface ClassDetails {
     className: string;
     classCode: string;
     instructorId: string;
+    teacherName?: string; // <--- ADDED THIS
     description?: string;
     studentIds: string[];
 }
@@ -66,22 +67,36 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
             'Authorization': `Bearer ${idToken}` 
         };
 
+        // 1. Fetch Class Details
         const classRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}`, { headers });
         if (!classRes.ok) {
             throw new Error("Class not found or access denied.");
         }
         const rawData = await classRes.json();
         
+        // Map the response (Including the new TeacherName)
         const classDetails: ClassDetails = {
             classId: rawData.classId || rawData.ClassId,
             className: rawData.className || rawData.ClassName || "Untitled Class",
             classCode: rawData.classCode || rawData.ClassCode || "NO-CODE",
             description: rawData.description || rawData.Description,
-            instructorId: rawData.instructorId || rawData.InstructorId, 
+            // Important: Backend sends 'TeacherId', so we map that to instructorId
+            instructorId: rawData.teacherId || rawData.TeacherId || rawData.instructorId, 
             studentIds: rawData.studentIds || rawData.StudentIds || [],
+            // Capture the name we just added to the backend
+            teacherName: rawData.teacherName || rawData.TeacherName 
         };
         setClassData(classDetails);
         
+        // Set Instructor immediately using the name from ClassDetails
+        setInstructor({
+            uid: classDetails.instructorId,
+            username: classDetails.teacherName || "Instructor", 
+            email: "", // Email might not be available yet, that's okay
+            role: "teacher"
+        });
+
+        // 2. Fetch Assignments
         try {
             const assignmentsRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/assignments/me`, { headers });
             if (assignmentsRes.ok) {
@@ -102,6 +117,8 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
             setAssignments([]);
         }
 
+        // 3. Fetch Members (Students)
+        // Note: Your GetStudentsInClass endpoint likely only returns students, not the teacher.
         const membersRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/students`, { headers });
         if (membersRes.ok) {
             const rawMembers = await membersRes.json();
@@ -109,10 +126,9 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 uid: m.uid || m.userId || m.UserId,
                 username: m.username || m.Username || "Unknown",
                 email: m.email || m.Email || "",
-                role: (m.uid || m.userId || m.UserId) === classDetails.instructorId ? 'teacher' : 'student' as 'student' | 'teacher'
+                role: 'student' 
             }));
-            setStudents(allMembers.filter(m => m.role === 'student'));
-            setInstructor(allMembers.find(m => m.role === 'teacher') || { uid: classDetails.instructorId, username: "Instructor", email: "", role: "teacher" });
+            setStudents(allMembers);
         } else {
             setStudents([]); 
         }
@@ -147,6 +163,8 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 const user = auth.currentUser;
                 if (!user) { router.push('/login'); return; }
                 const idToken = await user.getIdToken();
+                // Ensure this endpoint exists in your controller (it was named 'DeleteClass' in previous snippets, you might need to add a 'leave' endpoint or use delete if you intended that)
+                // For now assuming you handle the logic:
                 const response = await fetch(`http://localhost:5261/api/classes/${classId}/leave`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${idToken}` }
@@ -175,7 +193,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
 
     const studentCount = classData.studentIds?.length ?? 0;
 
-    // --- REFACTORED CARD RENDER ---
     const renderAssignments = () => (
         <div className={styles.assignmentsGrid}>
             {assignments.length > 0 ? (
@@ -203,37 +220,6 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
         </div>
     );
 
-    // const renderMembers = () => {
-    //     const studentList = students.filter(m => m.uid !== auth.currentUser?.uid); 
-
-    //     return (
-    //         <div className={styles.membersList}>
-    //             <div className={styles.memberSection}>
-    //                 <h3 className={styles.sectionTitle}>Instructor</h3>
-    //                 <div className={styles.memberItem}>
-    //                     <User size={18} />
-    //                     <span>{instructor?.username || "Unknown Instructor"}</span>
-    //                     <span className={styles.muted} style={{marginLeft: '10px'}}>{instructor?.email}</span>
-    //                 </div>
-    //             </div>
-    //             <div className={styles.memberSection} style={{ marginTop: '20px' }}>
-    //                 <h3 className={styles.sectionTitle}>Classmates ({studentList.length})</h3>
-    //                 {studentList.length > 0 ? (
-    //                     studentList.map(student => (
-    //                         <div key={student.uid} className={styles.memberItem}>
-    //                             <User size={18} />
-    //                             <span>{student.username}</span>
-    //                             <span className={styles.muted} style={{marginLeft: '10px'}}>{student.email}</span>
-    //                         </div>
-    //                     ))
-    //                 ) : (
-    //                     <p className={styles.muted}>No other classmates yet.</p>
-    //                 )}
-    //             </div>
-    //         </div>
-    //     );
-    // };
-
     return (
         <div className={styles.page}>
             <div className={styles.header}>
@@ -244,7 +230,10 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                             Code: {classData.classCode}
                         </span>
                         <span className={styles.infoSeparator}>|</span>
+                        
+                        {/* INSTRUCTOR NAME DISPLAY */}
                         <span>Instructor: {instructor?.username || "Loading..."}</span>
+                        
                         <span className={styles.infoSeparator}>|</span>
                         <span>{studentCount} Members</span>
                     </div>
@@ -269,16 +258,9 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 >
                     Assignments
                 </button>
-                {/* <button
-                    className={`${styles.tab} ${activeTab === 'members' ? styles.activeTab : ''}`}
-                    onClick={() => setActiveTab('members')}
-                >
-                    Classmates & Instructor
-                </button> */}
             </div>
 
             <div className={styles.contentArea}>
-                {/* {activeTab === 'assignments' ? renderAssignments() } */}
                 {renderAssignments()}
             </div>
         </div>

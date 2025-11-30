@@ -88,7 +88,23 @@ namespace Memora.Controllers
                 var classObj = await _classService.GetClassByIdAsync(classId);
                 if (classObj == null) return NotFound(new { message = "Class not found" });
 
-                return Ok(classObj);
+                // --- NEW: Fetch the Teacher Name ---
+                string teacherName = await _classService.GetUserNameByIdAsync(classObj.TeacherId);
+
+                // Return an anonymous object combining the class data + the teacher name
+                var response = new 
+                {
+                    classObj.ClassId,
+                    classObj.ClassName,
+                    classObj.ClassCode,
+                    classObj.TeacherId,
+                    classObj.DateCreated,
+                    classObj.StudentIds,
+                    classObj.AssignmentIds,
+                    TeacherName = teacherName // <--- This allows the frontend to see the name
+                };
+
+                return Ok(response);
             }
             catch (Exception ex) { return StatusCode(500, new { message = ex.Message }); }
         }
@@ -195,9 +211,25 @@ namespace Memora.Controllers
                 string? userId = await GetUserIdFromTokenAsync();
                 if (userId == null) return Unauthorized();
 
-                // This calls the service method to get classes where student_ids contains userId
                 var classes = await _classService.GetClassesForStudentAsync(userId);
-                return Ok(classes);
+                
+                var result = new List<ClassDto>(); // <--- Use the new DTO here
+
+                foreach (var cls in classes)
+                {
+                    string teacherName = await _classService.GetUserNameByIdAsync(cls.TeacherId);
+
+                    result.Add(new ClassDto
+                    {
+                        ClassId = cls.ClassId,
+                        ClassName = cls.ClassName,
+                        ClassCode = cls.ClassCode,
+                        TeacherName = teacherName,
+                        DeckCount = cls.AssignmentIds.Count
+                    });
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {

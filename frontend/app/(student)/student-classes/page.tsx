@@ -23,10 +23,13 @@ interface ClassItem {
 
   classCode?: string;
   ClassCode?: string;
+  
+  // NEW FIELDS
+  teacherName?: string;
+  TeacherName?: string;
 
-  // Optional: Add deck count if your API supports it, 
-  // otherwise we default to 0 for UI purposes
   deckCount?: number; 
+  DeckCount?: number;
 }
 
 export default function StudentClassesPage() {
@@ -41,6 +44,7 @@ export default function StudentClassesPage() {
     if (!user) return;
     try {
       const idToken = await user.getIdToken();
+      // Ensure this endpoint returns the list of ClassDto objects we created on the backend
       const response = await fetch('http://localhost:5261/api/classes/joined', {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${idToken}`, 'Cache-Control': 'no-cache' },
@@ -96,8 +100,11 @@ export default function StudentClassesPage() {
         const displayId = cls.classId || cls.ClassId || cls.id || cls.Id || `unknown-${index}`;
         const displayName = cls.className || cls.ClassName || cls.name || cls.Name || "Untitled Class";
         const displayCode = cls.classCode || cls.ClassCode || "NOCODE";
-        // Default to 0 if backend doesn't send count yet
-        const deckCount = cls.deckCount || 0; 
+        const deckCount = cls.deckCount || cls.DeckCount || 0; 
+
+        // --- NEW: Normalize Instructor Name ---
+        // Defaults to "Unknown Instructor" if the backend sends null or nothing
+        const instructorName = cls.teacherName || cls.TeacherName || "Unknown Instructor";
 
         return (
             <div key={displayId} style={{position:'relative'}}>
@@ -114,9 +121,20 @@ export default function StudentClassesPage() {
                     </div>
                   </div>
 
-                  {/* Middle: Title */}
+                  {/* Middle: Title AND Instructor */}
                   <div className={styles.cardBody}>
                     <div className={styles.cardTitle}>{displayName}</div>
+                    
+                    {/* --- ADDED INSTRUCTOR DISPLAY HERE --- */}
+                    <div style={{ 
+                        fontSize: '0.85rem', 
+                        color: '#64748b', 
+                        marginTop: '4px',
+                        fontWeight: 500
+                    }}>
+                        Instructor: {instructorName}
+                    </div>
+
                   </div>
 
                   {/* Bottom: Stats (Decks only as requested) */}
@@ -133,13 +151,12 @@ export default function StudentClassesPage() {
                       style={{
                         position: 'absolute', 
                         top: '24px', 
-                        right: '15px', // Adjusted to not overlap code if possible, or place between icon/code
+                        right: '15px', 
                         background:'none', 
                         border:'none', 
                         cursor:'pointer'
                       }}
                   >
-                      {/* Using a lighter color for the menu dots */}
                       <MoreVertical size={20} color="#cbd5e1" />
                   </button>
               </Link>
@@ -171,11 +188,10 @@ export default function StudentClassesPage() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>My Classes</h2>
-            {/* <p className={styles.sectionSubtitle}>Manage your student groups and assignments.</p> */}
         </div>
         
         <div className={styles.recentsGrid}>
-            {/* 1. Join Class Card (First in list to match image style) */}
+            {/* 1. Join Class Card */}
             <button
                 onClick={() => setIsJoinModalOpen(true)}
                 className={styles.actionCard}

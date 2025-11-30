@@ -178,5 +178,15 @@ namespace Memora.Services
             await docRef.DeleteAsync();
             return true;
         }
+
+        public async Task<string> GetUserNameByIdAsync(string userId)
+        {
+            var userDoc = await _db.Collection("users").Document(userId).GetSnapshotAsync();
+            if (userDoc.Exists)
+            {
+                return userDoc.GetValue<string>("username");
+            }
+            return "Unknown Instructor";
+        }
     }
 }

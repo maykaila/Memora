@@ -18,6 +18,9 @@ namespace Memora.Models
         [FirestoreProperty("user_id")]
         public string UserId { get; set; } = null!; // Foreign key to User
 
+        [FirestoreProperty("created_by")]
+        public string CreatedBy { get; set; } = string.Empty;
+
         [FirestoreProperty("title")]
         public string Title { get; set; } = null!;
 

@@ -6,7 +6,7 @@ namespace Memora.Services
     public interface IFlashcardSetService
     {
         // Creates a new flashcard set
-        Task<FlashcardSet> CreateSetAsync(string userId, CreateFlashcardSetRequest request);
+        Task<FlashcardSet> CreateSetAsync(string userId, string createdBy, CreateFlashcardSetRequest request);
 
         // Gets all sets for a specific user
         Task<IEnumerable<FlashcardSet>> GetSetsForUserAsync(string userId);

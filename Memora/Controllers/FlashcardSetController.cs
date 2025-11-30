@@ -76,7 +76,7 @@ namespace Memora.Controllers
                     return Unauthorized(new { message = "User must have a username claim." });
                 }
 
-                var newSet = await _setService.CreateSetAsync(userId, request);
+                var newSet = await _setService.CreateSetAsync(userId, username, request);
 
                 return CreatedAtAction(nameof(GetSet), new { setId = newSet.SetId }, newSet);
             }
@@ -129,10 +129,14 @@ namespace Memora.Controllers
         }
         
         [HttpGet("{setId}")]
-        public IActionResult GetSet(string setId)
+        public async Task<IActionResult> GetSet(string setId)
         {
-            // Placeholder
-            return Ok(new { message = $"Placeholder for set {setId}" });
+            var set = await _setService.GetSetByIdAsync(setId);
+
+            if (set == null)
+                return NotFound(new { message = "Flashcard set not found." });
+
+            return Ok(set);
         }
 
         [HttpDelete("{setId}")]

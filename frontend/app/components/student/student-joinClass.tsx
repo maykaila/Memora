@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GraduationCap, ArrowRight } from "lucide-react";
+import { GraduationCap, ArrowRight, AlertCircle } from "lucide-react"; // Added AlertCircle
 import { auth } from "../../../initializeFirebase"; 
 import styles from "./student-joinClass.module.css";
 
@@ -15,51 +15,53 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
   const [joinCode, setJoinCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  // 1. Added missing error state
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const handleJoinClass = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    if (!joinCode.trim()) return;
+    setError(null);
 
     try {
+      // 2. Get the current user and token
       const user = auth.currentUser;
-      if (!user) throw new Error("Not logged in");
+      if (!user) {
+        throw new Error("You must be logged in to join a class.");
+      }
       const idToken = await user.getIdToken();
 
-      // POST to join class endpoint
-      // Note: Make sure your backend endpoint matches this URL
-      const response = await fetch('http://localhost:5261/api/classes/join', {
+      // 3. Use 'joinCode' state variable here (fixed from 'code')
+      const response = await fetch(`http://localhost:5261/api/classes/join/${joinCode}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        // Sending the code as JSON. Ensure your backend expects "code" or "classCode"
-        body: JSON.stringify({ code: joinCode }) 
+        headers: { 'Authorization': `Bearer ${idToken}` }
       });
 
       if (!response.ok) {
-        // Try to read error message from backend, fallback to text
         let errorMessage = "Failed to join class";
+        
+        // 4. Safe Error Handling (fixes the stream already read error)
+        const responseText = await response.text();
+
         try {
-            const err = await response.json();
-            errorMessage = err.message || errorMessage;
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorMessage;
         } catch {
-            errorMessage = await response.text();
+            if (responseText) errorMessage = responseText;
         }
+
         throw new Error(errorMessage);
       }
 
-      // If successful
+      // 5. Show Success Screen instead of closing immediately
       setIsSuccess(true);
 
-    } catch (error: any) {
-      console.error("Error joining class:", error);
-      alert(error.message);
-      setIsLoading(false); 
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,6 +70,7 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
     setJoinCode("");
     setIsSuccess(false);
     setIsLoading(false);
+    setError(null);
     onClose();
   };
 
@@ -75,8 +78,6 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
     onSuccess(); // Refresh the dashboard data
     handleClose();
   };
-
-  console.log("Debug Styles:", styles);
 
   return (
     <div className={styles.overlay} onClick={handleClose}>
@@ -98,11 +99,18 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
                 <input
                   className={styles.input}
                   value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())} // Auto-uppercase for codes
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())} // Auto-uppercase
                   placeholder="e.g. X7Y2Z9"
                   autoFocus
                 />
               </div>
+
+              {/* Added Error Message Display */}
+              {error && (
+                <div style={{ color: '#d32f2f', fontSize: '0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <AlertCircle size={16} /> {error}
+                </div>
+              )}
 
               <div className={styles.actions}>
                 <button type="button" onClick={handleClose} className={styles.cancelBtn}>
@@ -127,10 +135,10 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
                 <GraduationCap size={28} />
               </div>
             </div>
-            <h2 className={styles.title} style={{color:'#166534'}}>Success!</h2>
-            <p style={{color:'#666', marginTop: '10px'}}>You have successfully joined the class.</p>
+            <h2 className={styles.title} style={{color:'#166534', textAlign: 'center'}}>Success!</h2>
+            <p style={{color:'#666', marginTop: '10px', textAlign: 'center'}}>You have successfully joined the class.</p>
             
-            <button onClick={handleDone} className={styles.doneBtn} style={{marginTop: '20px'}}>
+            <button onClick={handleDone} className={styles.doneBtn} style={{marginTop: '20px', width: '100%'}}>
               Go to Dashboard <ArrowRight size={16} style={{marginLeft:'5px'}}/>
             </button>
           </div>

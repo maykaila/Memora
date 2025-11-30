@@ -18,21 +18,22 @@ namespace Memora.Services
             _setsCollection = _db.Collection("flashcardSets");
         }
 
-        public async Task<FlashcardSet> CreateSetAsync(string userId, CreateFlashcardSetRequest request)
-    {
-        DocumentReference docRef = _setsCollection.Document();
-
-        var newSet = new FlashcardSet
+        public async Task<FlashcardSet> CreateSetAsync(string userId, string username, CreateFlashcardSetRequest request)
         {
-            SetId = docRef.Id,
-            UserId = userId,
-            Title = request.Title,
-            Description = request.Description,
-            Visibility = request.Visibility,
-            DateCreated = DateTime.UtcNow,
-            LastUpdated = DateTime.UtcNow,
-            TagIds = request.TagIds ?? new List<string>()
-        };
+            DocumentReference docRef = _setsCollection.Document();
+
+            var newSet = new FlashcardSet
+            {
+                SetId = docRef.Id,
+                UserId = userId,
+                Title = request.Title,
+                Description = request.Description,
+                CreatedBy = username,
+                Visibility = request.Visibility,
+                DateCreated = DateTime.UtcNow,
+                LastUpdated = DateTime.UtcNow,
+                TagIds = request.TagIds ?? new List<string>()
+            };
 
         // 1. Save the main FlashcardSet document
         await docRef.SetAsync(newSet);

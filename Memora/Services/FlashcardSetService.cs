@@ -34,31 +34,6 @@ namespace Memora.Services
                 TagIds = request.TagIds ?? new List<string>()
             };
 
-<<<<<<< HEAD
-        // 1. Save the main FlashcardSet document
-        await docRef.SetAsync(newSet);
-        
-        // 2. Add logic to save the individual flashcards to a subcollection
-        CollectionReference cardsCollection = docRef.Collection("flashcards");
-        
-        // We can use a WriteBatch for efficiency and atomicity (all or nothing)
-        WriteBatch batch = _db.StartBatch(); 
-
-        foreach (var cardDto in request.Cards)
-        {
-            DocumentReference cardDocRef = cardsCollection.Document();
-            var newCard = new Flashcard
-            {
-                CardId = cardDocRef.Id,
-                Term = cardDto.Term,
-                Definition = cardDto.Definition,
-                ImageUrl = cardDto.ImageUrl,
-                DateCreated = DateTime.UtcNow
-            };
-            
-            // Add the flashcard to the batch
-            batch.Set(cardDocRef, newCard); 
-=======
             // 1. Save the main FlashcardSet document
             await docRef.SetAsync(newSet);
             
@@ -89,7 +64,6 @@ namespace Memora.Services
             
             // The main set and all cards are now saved.
             return newSet;
->>>>>>> 08daf089d071ca783213f324db5198b8dad34580
         }
         
         // Commit all card saves together

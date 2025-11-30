@@ -65,13 +65,6 @@ namespace Memora.Services
             // The main set and all cards are now saved.
             return newSet;
         }
-        
-        // Commit all card saves together
-        await batch.CommitAsync();
-        
-        // The main set and all cards are now saved.
-        return newSet;
-    }
 
         public async Task<IEnumerable<FlashcardSet>> GetSetsForUserAsync(string userId)
         {
@@ -87,7 +80,6 @@ namespace Memora.Services
             return sets;
         }
 
-        // --- FIX IS HERE ---
         public async Task<List<FlashcardSet>> GetPublicSetsAsync()
         {
             // 1. Use _setsCollection (it is already initialized to "flashcardSets")

@@ -5,16 +5,22 @@ namespace Memora.Services
 {
     public interface IFlashcardSetService
     {
-        // Creates a new flashcard set
+        // Create a new flashcard set
         Task<FlashcardSet> CreateSetAsync(string userId, CreateFlashcardSetRequest request);
 
-        // Gets all sets for a specific user
+        // Get all sets belonging to a user
         Task<IEnumerable<FlashcardSet>> GetSetsForUserAsync(string userId);
 
-        // (You can add other methods here later, like GetSetById, UpdateSet, DeleteSet)
+        // Get all public sets
         Task<List<FlashcardSet>> GetPublicSetsAsync();
 
+        // Delete a set
         Task<bool> DeleteSetAsync(string setId, string userId);
+
+        // Get set by ID
         Task<FlashcardSet?> GetSetByIdAsync(string setId);
+
+        // Get username
+        Task<string> GetUsernameAsync(string userId);
     }
 }

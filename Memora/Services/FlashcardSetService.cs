@@ -26,6 +26,7 @@ namespace Memora.Services
             {
                 SetId = docRef.Id,
                 UserId = userId,
+                CreatedBy = await GetUsernameAsync(userId),
                 Title = request.Title,
                 Description = request.Description,
                 Visibility = request.Visibility,
@@ -78,6 +79,19 @@ namespace Memora.Services
             }
 
             return sets;
+        }
+
+        public async Task<string> GetUsernameAsync(string userId)
+        {
+            var userRef = _db.Collection("users").Document(userId);
+            var userDoc = await userRef.GetSnapshotAsync();
+
+            if (userDoc.Exists && userDoc.ContainsField("username"))
+            {
+                return userDoc.GetValue<string>("username");
+            }
+
+            return "Unknown";
         }
 
         public async Task<List<FlashcardSet>> GetPublicSetsAsync()

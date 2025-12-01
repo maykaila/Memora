@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { auth, createUserWithEmailAndPassword } from '../../../initializeFirebase'; 
 import { GraduationCap, School } from "lucide-react"; // Icons for visual cue
 import styles from '../auth.module.css'; 
+import { updateProfile } from "firebase/auth";
 
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
@@ -57,6 +58,11 @@ export default function SignUpPage() {
       }
 
       const user = userCredential.user;
+
+      await updateProfile(user, {
+        displayName: username
+      });
+
       const idToken = await user.getIdToken();
 
       // 2. Create User Profile in Backend (SQL/Firestore)

@@ -2,8 +2,6 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { db } from "../../../initializeFirebase";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
@@ -17,20 +15,29 @@ export default function OverviewOfCardsPage() {
 
   /** Fetch flashcard set info */
   const fetchSetDetails = async (id: string) => {
-    const docRef = doc(db, "flashcardSets", id);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docSnap.data() : null;
+    const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    if (!res.ok) return null;
+    return await res.json();
   };
+
 
   /** Fetch all cards inside the set */
   const fetchCards = async (id: string) => {
-    const cardsRef = collection(db, "flashcardSets", id, "cards");
-    const snapshot = await getDocs(cardsRef);
+    const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}/cards`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
-    const list: any[] = [];
-    snapshot.forEach((c) => list.push({ id: c.id, ...c.data() }));
-    return list;
+    if (!res.ok) return [];
+    return await res.json();
   };
+
 
   useEffect(() => {
     const loadData = async () => {
@@ -76,6 +83,12 @@ export default function OverviewOfCardsPage() {
         <h1 style={titleText}>{setData.title}</h1>
 
         <p style={subtitleText}>{setData.description}</p>
+
+        {setData.created_by && (
+          <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}>
+            Created by: <strong>{setData.created_by}</strong>
+          </p>
+        )}
 
         {setData.tag_ids && (
           <p style={tagStyle}>{setData.tag_ids}</p>

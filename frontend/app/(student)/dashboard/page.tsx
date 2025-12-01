@@ -17,6 +17,7 @@ interface FlashcardSet {
   description: string | null;
   visibility: boolean | string; 
   dateCreated: string;
+  createdBy?: string;
 }
 
 interface FolderItem {
@@ -116,6 +117,13 @@ export default function StudentDashboard() {
                 {(set.visibility === true || String(set.visibility).toLowerCase() === "public") ? <Globe size={12}/> : <Lock size={12}/>} 
                 <span style={{marginLeft: '4px'}}>{formatDate(set.dateCreated)}</span>
               </div>
+
+              {set.createdBy && (
+                <p style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+                  Created by: <strong>{set.createdBy}</strong>
+                </p>
+              )}
+
             </div>
           </Link>
         ))}
@@ -171,6 +179,11 @@ export default function StudentDashboard() {
           <Link href={`/overviewOfCards?id=${set.setId}`} key={set.setId} className={styles.exploreCard}>
             <div className={styles.exploreTitle}>{set.title}</div>
             <div className={styles.exploreMeta}>Public Deck • {formatDate(set.dateCreated)}</div>
+            {set.createdBy && (
+            <p className={styles.exploreMeta} style={{ marginTop: "4px" }}>
+              Created by: <strong>{set.createdBy}</strong>
+            </p>
+          )}
           </Link>
         ))}
       </div>

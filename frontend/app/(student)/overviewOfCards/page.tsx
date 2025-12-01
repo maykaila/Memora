@@ -84,9 +84,9 @@ export default function OverviewOfCardsPage() {
 
         <p style={subtitleText}>{setData.description}</p>
 
-        {setData.created_by && (
+        {setData.createdBy && (
           <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}>
-            Created by: <strong>{setData.created_by}</strong>
+            Created by: <i>{setData.createdBy}</i>
           </p>
         )}
 

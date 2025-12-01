@@ -13,6 +13,22 @@ export default function OverviewOfCardsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  /** Normalize set object from backend */
+  const normalizeSet = (raw: any) => ({
+    id: raw.setId || raw.id,
+    title: raw.title,
+    description: raw.description,
+    createdBy: raw.createdBy || raw.createdByUser || raw.owner || raw.ownerName,
+    tags: raw.tagIds || raw.tag_ids || [],
+  });
+
+  /** Normalize card object */
+  const normalizeCard = (raw: any) => ({
+    id: raw.cardId || raw.id,
+    term: raw.term,
+    definition: raw.definition,
+  });
+
   /** Fetch flashcard set info */
   const fetchSetDetails = async (id: string) => {
     const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
@@ -22,11 +38,11 @@ export default function OverviewOfCardsPage() {
     });
 
     if (!res.ok) return null;
-    return await res.json();
+    const data = await res.json();
+    return normalizeSet(data);
   };
 
-
-  /** Fetch all cards inside the set */
+  /** Fetch all cards in the set */
   const fetchCards = async (id: string) => {
     const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}/cards`, {
       headers: {
@@ -35,10 +51,12 @@ export default function OverviewOfCardsPage() {
     });
 
     if (!res.ok) return [];
-    return await res.json();
+    const data = await res.json();
+
+    return data.map((c: any) => normalizeCard(c));
   };
 
-
+  /** Load set + cards */
   useEffect(() => {
     const loadData = async () => {
       if (!setId) return;
@@ -68,16 +86,23 @@ export default function OverviewOfCardsPage() {
   }, [setId]);
 
   if (loading) {
-    return <PageContainer><p>Loading flashcards...</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p>Loading flashcards...</p>
+      </PageContainer>
+    );
   }
 
   if (error) {
-    return <PageContainer><p style={{ color: "red" }}>{error}</p></PageContainer>;
+    return (
+      <PageContainer>
+        <p style={{ color: "red" }}>{error}</p>
+      </PageContainer>
+    );
   }
 
   return (
     <PageContainer>
-      
       {/* FLASHCARD SET BOX */}
       <div style={cardContainer}>
         <h1 style={titleText}>{setData.title}</h1>
@@ -90,15 +115,24 @@ export default function OverviewOfCardsPage() {
           </p>
         )}
 
-        {setData.tag_ids && (
-          <p style={tagStyle}>{setData.tag_ids}</p>
+        {setData.tags.length > 0 && (
+          <p style={tagStyle}>{setData.tags.join(", ")}</p>
         )}
 
         {/* BUTTON GROUP */}
         <div style={buttonGroup}>
-          <PrimaryButton label="Flashcards" onClick={() => router.push(`/flashcards?id=${setId}`)} />
-          <PrimaryButton label="Multiple Choice" onClick={() => router.push(`/multipleChoice?id=${setId}`)} />
-          <PrimaryButton label="Quiz" onClick={() => router.push(`/quiz?id=${setId}`)} />
+          <PrimaryButton
+            label="Flashcards"
+            onClick={() => router.push(`/flashcards?id=${setId}`)}
+          />
+          <PrimaryButton
+            label="Multiple Choice"
+            onClick={() => router.push(`/multipleChoice?id=${setId}`)}
+          />
+          <PrimaryButton
+            label="Quiz"
+            onClick={() => router.push(`/quiz?id=${setId}`)}
+          />
         </div>
 
         <h2 style={sectionTitle}>Terms & Definitions</h2>
@@ -131,7 +165,13 @@ const PageContainer = ({ children }: any) => (
   </div>
 );
 
-const PrimaryButton = ({ label, onClick }: { label: string; onClick: () => void }) => (
+const PrimaryButton = ({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) => (
   <button
     onClick={onClick}
     style={{

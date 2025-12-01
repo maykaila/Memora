@@ -39,7 +39,7 @@ namespace Memora.Services
             await docRef.SetAsync(newSet);
             
             // 2. Add logic to save the individual flashcards to a subcollection
-            CollectionReference cardsCollection = docRef.Collection("flashcards");
+            CollectionReference cardsCollection = docRef.Collection("cards");
             
             // We can use a WriteBatch for efficiency and atomicity (all or nothing)
             WriteBatch batch = _db.StartBatch(); 
@@ -133,7 +133,7 @@ namespace Memora.Services
             }
 
             // 1. We must delete all flashcards in the subcollection first
-            CollectionReference cardsCollection = setDocRef.Collection("flashcards");
+            CollectionReference cardsCollection = setDocRef.Collection("cards");
             QuerySnapshot cardsSnapshot = await cardsCollection.GetSnapshotAsync();
 
             WriteBatch batch = _db.StartBatch();
@@ -155,13 +155,42 @@ namespace Memora.Services
         public async Task<FlashcardSet?> GetSetByIdAsync(string setId)
         {
             DocumentSnapshot snapshot = await _setsCollection.Document(setId).GetSnapshotAsync();
-            
-            if (snapshot.Exists)
+            if (!snapshot.Exists) return null;
+
+            var set = snapshot.ConvertTo<FlashcardSet>();
+            set.SetId = snapshot.Id;
+
+            // Load cards subcollection
+            var cardsSnapshot = await _setsCollection
+                .Document(setId)
+                .Collection("cards")
+                .GetSnapshotAsync();
+
+            set.Cards = cardsSnapshot.Documents.Select(doc =>
             {
-                return snapshot.ConvertTo<FlashcardSet>();
-            }
-            
-            return null;
+                var card = doc.ConvertTo<Flashcard>();
+                card.CardId = doc.Id;
+                return card;
+            }).ToList();
+
+            return set;
+        }
+
+        public async Task<List<Flashcard>> GetCardsForSetAsync(string setId)
+        {
+            var cardsSnapshot = await _setsCollection
+                .Document(setId)
+                .Collection("cards")
+                .GetSnapshotAsync();
+
+            var cards = cardsSnapshot.Documents.Select(doc =>
+            {
+                var card = doc.ConvertTo<Flashcard>();
+                card.CardId = doc.Id;
+                return card;
+            }).ToList();
+
+            return cards;
         }
     }
 }

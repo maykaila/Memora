@@ -76,7 +76,7 @@ namespace Memora.Controllers
                     return Unauthorized(new { message = "User must have a username claim." });
                 }
 
-                var newSet = await _setService.CreateSetAsync(userId, username, request);
+                var newSet = await _setService.CreateSetAsync(userId, request);
 
                 return CreatedAtAction(nameof(GetSet), new { setId = newSet.SetId }, newSet);
             }

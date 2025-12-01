@@ -179,6 +179,11 @@ export default function StudentDashboard() {
           <Link href={`/overviewOfCards?id=${set.setId}`} key={set.setId} className={styles.exploreCard}>
             <div className={styles.exploreTitle}>{set.title}</div>
             <div className={styles.exploreMeta}>Public Deck • {formatDate(set.dateCreated)}</div>
+            {set.createdBy && (
+            <p className={styles.exploreMeta} style={{ marginTop: "4px" }}>
+              Created by: <strong>{set.createdBy}</strong>
+            </p>
+          )}
           </Link>
         ))}
       </div>

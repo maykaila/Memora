@@ -18,7 +18,7 @@ namespace Memora.Services
             _setsCollection = _db.Collection("flashcardSets");
         }
 
-        public async Task<FlashcardSet> CreateSetAsync(string userId, string displayName, CreateFlashcardSetRequest request)
+        public async Task<FlashcardSet> CreateSetAsync(string userId, CreateFlashcardSetRequest request)
         {
             DocumentReference docRef = _setsCollection.Document();
 
@@ -26,7 +26,7 @@ namespace Memora.Services
             {
                 SetId = docRef.Id,
                 UserId = userId,
-                CreatedBy = displayName,
+                CreatedBy = await GetUsernameAsync(userId),
                 Title = request.Title,
                 Description = request.Description,
                 Visibility = request.Visibility,
@@ -81,7 +81,19 @@ namespace Memora.Services
             return sets;
         }
 
-        // --- FIX IS HERE ---
+        public async Task<string> GetUsernameAsync(string userId)
+        {
+            var userRef = _db.Collection("users").Document(userId);
+            var userDoc = await userRef.GetSnapshotAsync();
+
+            if (userDoc.Exists && userDoc.ContainsField("username"))
+            {
+                return userDoc.GetValue<string>("username");
+            }
+
+            return "Unknown";
+        }
+
         public async Task<List<FlashcardSet>> GetPublicSetsAsync()
         {
             // 1. Use _setsCollection (it is already initialized to "flashcardSets")

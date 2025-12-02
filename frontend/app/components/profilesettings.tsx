@@ -5,7 +5,6 @@ import './profilesettings.css';
 import { auth } from '../../initializeFirebase'; 
 import { User, signOut } from 'firebase/auth'; 
 import { uploadProfilePicture, updateUserProfile } from '../../services/userService';
-// IMPORT THE MODAL COMPONENT
 import ChangePassword from './changepass'; 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5261";

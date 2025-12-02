@@ -153,11 +153,10 @@ export default function TeacherDashboard() {
             <div className={`${styles.iconBox} ${styles.iconGreen}`}>
               <Users size={20} />
             </div>
-            <div style={{ flex: 1 }}>
-              <div className={styles.cardTitle} style={{ fontSize: '1.1rem' }}>{cls.className}</div>
+            <div style={{ flex: 1, minWidth: 100 }}>
+              <div className={styles.cardTitle} style={{ fontSize: '1.1rem' }} title={cls.className}>{cls.className}</div>
               
               <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                
                 <div className={styles.cardMeta}>
                    {cls.studentIds?.length || 0} Students
                 </div>
@@ -216,13 +215,13 @@ export default function TeacherDashboard() {
     return (
       <div className={styles.recentsGrid}>
         {folders.map((folder) => (
-          /* CHANGED: Wrapped in Link to navigate to teacher folder details */
           <Link href={`/teacher-folder/${folder.folderId}`} key={folder.folderId} className={styles.standardCard}>
              <div className={styles.iconBox} style={{ backgroundColor: '#e0f2fe', color: '#4a1942' }}>
               <Folder size={20} />
             </div>
-            <div>
-              <div className={styles.cardTitle}>{folder.title}</div>
+            {/* ADD minWidth: 100 here */}
+            <div style={{ flex: 1, minWidth: 100 }}>
+              <div className={styles.cardTitle} title={folder.title}>{folder.title}</div>
               <div className={styles.cardMeta}>{folder.itemCount} items</div>
             </div>
           </Link>
@@ -242,8 +241,8 @@ export default function TeacherDashboard() {
             <div className={`${styles.iconBox} ${styles.iconPurple}`}>
               <BookOpen size={20} />
             </div>
-            <div>
-              <div className={styles.cardTitle}>{set.title}</div>
+            <div style={{ flex: 1, minWidth: 100 }}> 
+              <div className={styles.cardTitle} title={set.title}>{set.title}</div>
               <div className={styles.cardMeta}>
                 <span style={{marginLeft: '4px'}}>{formatDate(set.dateCreated)}</span>
               </div>

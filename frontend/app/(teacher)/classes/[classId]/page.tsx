@@ -258,7 +258,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
                         left: '50%', 
                         transform: 'translateX(-50%)', // Centers it relative to badge
                         marginTop: '4px',
-                        color: '#22c55e', // Green color
+                        color: '#166534',
                         fontSize: '0.75rem', 
                         fontWeight: '600',
                         whiteSpace: 'nowrap',

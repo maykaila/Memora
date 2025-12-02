@@ -160,8 +160,10 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
         }
     };
 
+    // --- CHANGED THIS FUNCTION ---
     const handleAccessDeck = (setId: string) => {
-        router.push(`/study/${setId}?classId=${classId}`);
+        // Redirect to Overview Page instead of direct Study Page
+        router.push(`/overviewOfCards?id=${setId}`);
     };
 
     const formatDate = (dateString: string) => {

@@ -91,7 +91,7 @@ export default function StudentClassesPage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const handleArchive = (id: string) => alert(`Archiving class ${id}`);
+  // const handleArchive = (id: string) => alert(`Archiving class ${id}`);
   const handleDelete = (id: string) => alert(`Leaving class ${id}`);
 
   const renderClasses = () => {
@@ -168,9 +168,9 @@ export default function StudentClassesPage() {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 10,
                       minWidth: '140px', border: '1px solid #eee', overflow:'hidden'
                   }}>
-                      <button onClick={() => handleArchive(displayId)} style={{display:'flex', gap:'8px', width:'100%', padding:'12px', border:'none', background:'white', cursor:'pointer', textAlign:'left', fontSize:'0.9rem', alignItems:'center'}}>
+                      {/* <button onClick={() => handleArchive(displayId)} style={{display:'flex', gap:'8px', width:'100%', padding:'12px', border:'none', background:'white', cursor:'pointer', textAlign:'left', fontSize:'0.9rem', alignItems:'center'}}>
                           <Archive size={16} /> Archive
-                      </button>
+                      </button> */}
                       <button onClick={() => handleDelete(displayId)} style={{display:'flex', gap:'8px', width:'100%', padding:'12px', border:'none', background:'white', cursor:'pointer', textAlign:'left', fontSize:'0.9rem', color:'#d32f2f', alignItems:'center'}}>
                           <Trash2 size={16} /> Leave Class
                       </button>

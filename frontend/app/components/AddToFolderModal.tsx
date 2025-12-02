@@ -60,10 +60,10 @@ export default function AddToFolderModal({ isOpen, onClose, deckId }: Props) {
       });
 
       if (res.ok) {
-        alert("Added to folder successfully!");
+        // alert("Added to folder successfully!");
         onClose();
       } else {
-        alert("Failed to add to folder.");
+        // alert("Failed to add to folder.");
       }
     } catch (err) {
       console.error(err);

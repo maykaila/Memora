@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using FirebaseAdmin.Auth;
 using System.Threading.Tasks;
-using Memora.Services; // Your namespace
-using Memora.DTOs;     // Your namespace
+using Memora.Services;
+using Memora.DTOs;
 
-// FIX 1: Added the namespace wrapper
 namespace Memora.Controllers
 {
     [ApiController]
@@ -13,73 +12,68 @@ namespace Memora.Controllers
     {
         private readonly IUserService _userService;
 
-        // This is the constructor
         public UserControllers(IUserService userService)
         {
             _userService = userService;
         }
 
+        // CREATE USER (CLEANED)
         [HttpPost("create")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
         {
             try
             {
-                // 1. Get the Bearer token from the request header
+                // 1. Check Authorization header
                 string authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
                     return Unauthorized(new { message = "No token provided." });
                 }
-                
+
                 string idToken = authHeader.Split(" ")[1];
 
-                // 2. Verify the token with Firebase Admin
+                // 2. Verify ID token
                 FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance
                     .VerifyIdTokenAsync(idToken);
-                
-                // --- THIS IS THE FIX ---
-                // 2.5 Get the full user record FROM the token's UID
-                UserRecord userRecord = await FirebaseAuth.DefaultInstance.GetUserAsync(decodedToken.Uid);
 
-                // 3. Get the UID
-                string uid = userRecord.Uid; // Get UID from the userRecord
+                // 3. Get Firebase user record
+                UserRecord userRecord = await FirebaseAuth.DefaultInstance
+                    .GetUserAsync(decodedToken.Uid);
 
-                // 4. Security Check: Use 'userRecord.Email'
+                string uid = userRecord.Uid;
+
+                // 4. Security check – the email in request must match Firebase record
                 if (userRecord.Email.ToLower() != request.Email.ToLower())
                 {
-                     return BadRequest(new { message = "Email mismatch." });
+                    return BadRequest(new { message = "Email mismatch." });
                 }
 
-                // 5. Call your OOP "Brain" (the service)
+                // 5. Save user in your Firestore Database
                 var newUser = await _userService.CreateUserAsync(
-                    uid, 
-                    request.Username, 
-                    userRecord.Email, // Use the trusted email
-                    request.Role 
+                    uid,
+                    request.Username,
+                    userRecord.Email,
+                    request.Role
                 );
 
                 return CreatedAtAction(nameof(GetUser), new { id = newUser.UserId }, newUser);
             }
-            // FIX 2: Removed the stray '.catch'
             catch (FirebaseAuthException ex)
             {
-                // Token is invalid or expired
                 return Unauthorized(new { message = "Invalid token.", error = ex.Message });
             }
             catch (Exception ex)
             {
-                // This will catch the 'Email' error if you don't fix it
                 return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
             }
         }
 
-        // A placeholder method so 'CreatedAtAction' works
+        // GET USER
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
             try
             {
-                // Check Authorization header
                 string authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
@@ -87,17 +81,13 @@ namespace Memora.Controllers
                 }
 
                 string idToken = authHeader.Split(" ")[1];
-
-                // Verify token
                 FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-                // Ensure user can only access their own data
                 if (decodedToken.Uid != id)
                 {
                     return Unauthorized(new { message = "Unauthorized user." });
                 }
 
-                // Get user from Firestore
                 var user = await _userService.GetUserAsync(id);
                 if (user == null) return NotFound();
 
@@ -109,8 +99,7 @@ namespace Memora.Controllers
             }
         }
 
-
-        // For Streak -------------------------------------------------------------------------------------------
+        // CHECK IN (STREAK)
         [HttpPost("checkin")]
         public async Task<IActionResult> CheckIn()
         {
@@ -118,11 +107,12 @@ namespace Memora.Controllers
             {
                 string authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader)) return Unauthorized();
+
                 string idToken = authHeader.Split(" ")[1];
                 FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
-                
+
                 await _userService.CheckInUserAsync(decodedToken.Uid);
-                
+
                 return Ok(new { message = "Daily check-in successful" });
             }
             catch (Exception ex)
@@ -130,36 +120,27 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
-        // For Streak -------------------------------------------------------------------------------------------
 
-
-        //* for deleting id
-
- // --- NEW DELETE METHOD STARTS HERE ---
+        // DELETE USER
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             try
             {
-                // 1. Authorization Check
                 string authHeader = Request.Headers["Authorization"].ToString();
                 if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
                     return Unauthorized(new { message = "No token provided." });
                 }
 
-                // 2. Verify Token
                 string idToken = authHeader.Split(" ")[1];
                 FirebaseToken decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
 
-                // 3. Security: Ensure user is deleting THEIR OWN account
                 if (decodedToken.Uid != id)
                 {
                     return StatusCode(403, new { message = "You are not allowed to delete this account." });
                 }
 
-                // 4. Call Service to delete from Database
-                // Note: You must ensure 'DeleteUserAsync' exists in your IUserService
                 bool deleted = await _userService.DeleteUserAsync(id);
 
                 if (!deleted)
@@ -171,14 +152,8 @@ namespace Memora.Controllers
             }
             catch (Exception ex)
             {
-                // This catches database foreign key constraints (e.g., if user has flashcards)
                 return StatusCode(500, new { message = "Failed to delete user.", error = ex.Message });
             }
         }
-        // --- NEW DELETE METHOD ENDS HERE ---
-
-
-
-        //* delete id end
     }
 }

@@ -1,5 +1,4 @@
 using Google.Cloud.Firestore;
-
 // public enum VisibilityStatus
 // {
 //     Private,  // 0
@@ -17,6 +16,9 @@ namespace Memora.Models
 
         [FirestoreProperty("user_id")]
         public string UserId { get; set; } = null!; // Foreign key to User
+
+        [FirestoreProperty("created_by")]
+        public string CreatedBy { get; set; } = string.Empty;
 
         [FirestoreProperty("title")]
         public string Title { get; set; } = null!;
@@ -36,5 +38,8 @@ namespace Memora.Models
         // This is the NoSQL way to handle your Set_Tags requirement
         [FirestoreProperty("tag_ids")]
         public List<string> TagIds { get; set; } = new List<string>();
+
+        public List<Flashcard> Cards { get; set; } = new();
+
     }
 }

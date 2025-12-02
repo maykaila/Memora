@@ -285,22 +285,34 @@ export default function OverviewOfCardsPage() {
         
         {/* LEFT SIDE — SET INFORMATION */}
         <div style={leftColumn}>
-          <h1 style={titleText}>{setData.title}</h1>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+              gap: 10,
+            }}
+          >
+            <h1 style={{ ...titleText, margin: 0 }}>{setData.title}</h1>
+
             {isOwner && (
               <button
                 onClick={handleEditSet}
                 style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "4px",
-                    display: "flex",
-                    alignItems: "center",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
                 <Pencil size={20} color="#4A1942" />
-            </button>
+              </button>
             )}
+          </div>
+
           <p style={subtitleText}>{setData.description}</p>
 
           {setData.createdBy && (

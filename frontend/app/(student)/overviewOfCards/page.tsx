@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { auth } from "../../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { MoreHorizontal, Edit2, Trash2 } from "lucide-react";
+import { MoreHorizontal, Edit2, Trash2, X, ArrowUp, ArrowDown } from "lucide-react";
 
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
@@ -15,14 +15,13 @@ export default function OverviewOfCardsPage() {
   const [cards, setCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
 
   // menu + edit mode states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // edit inputs
+  // edit fields
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editTerms, setEditTerms] = useState<string[]>([]);
@@ -42,14 +41,13 @@ export default function OverviewOfCardsPage() {
   });
 
   const normalizeCard = (c: any) => ({
-      id: c.cardId || c.id,
-      term: c.term,
-      definition: c.definition,
+    id: c.cardId || c.id,
+    term: c.term,
+    definition: c.definition,
   });
 
-
   /* ============================= */
-  /*          API CALLS            */
+  /*         API CALLS             */
   /* ============================= */
 
   const fetchSetDetails = async (id: string) => {
@@ -100,7 +98,6 @@ export default function OverviewOfCardsPage() {
         setSetData(setInfo);
         setCards(cardList);
 
-        // load edit fields
         setEditTitle(setInfo.title);
         setEditDescription(setInfo.description);
         setEditTerms(cardList.map((c: any) => c.term));
@@ -116,10 +113,6 @@ export default function OverviewOfCardsPage() {
     return () => unsub();
   }, [setId]);
 
-  /* ============================= */
-  /*            LOGIC              */
-  /* ============================= */
-
   if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
   if (error) return <p style={{ padding: 20, color: "red" }}>{error}</p>;
 
@@ -130,7 +123,40 @@ export default function OverviewOfCardsPage() {
     setData.createdByUID === loggedInUID;
 
   /* ============================= */
-  /*      UPDATE & DELETE          */
+  /*          EDITING LOGIC        */
+  /* ============================= */
+
+  const handleAddCard = () => {
+    setEditTerms((prev) => [...prev, ""]);
+    setEditDefinitions((prev) => [...prev, ""]);
+  };
+
+  const handleDeleteCard = (index: number) => {
+    setEditTerms((prev) => prev.filter((_, i) => i !== index));
+    setEditDefinitions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const moveCard = (index: number, direction: "up" | "down") => {
+    const newTerms = [...editTerms];
+    const newDefs = [...editDefinitions];
+
+    const target = direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= newTerms.length) return;
+
+    [newTerms[index], newTerms[target]] = [newTerms[target], newTerms[index]];
+    [newDefs[index], newDefs[target]] = [newDefs[target], newDefs[index]];
+
+    setEditTerms(newTerms);
+    setEditDefinitions(newDefs);
+  };
+
+  const autoResize = (e: any) => {
+    e.target.style.height = "auto";
+    e.target.style.height = e.target.scrollHeight + "px";
+  };
+
+  /* ============================= */
+  /*        UPDATE SET API         */
   /* ============================= */
 
   const handleUpdateSet = async () => {
@@ -140,9 +166,9 @@ export default function OverviewOfCardsPage() {
 
       const token = await user.getIdToken();
 
-      const updatedCards = cards.map((c, i) => ({
-        id: c.id,
-        term: editTerms[i],
+      const updatedCards = editTerms.map((term, i) => ({
+        id: cards[i]?.id,
+        term,
         definition: editDefinitions[i],
       }));
 
@@ -164,7 +190,6 @@ export default function OverviewOfCardsPage() {
 
       if (!res.ok) return alert("Failed to update set.");
 
-      // Update UI instantly
       setSetData((prev: any) => ({
         ...prev,
         title: editTitle,
@@ -177,7 +202,6 @@ export default function OverviewOfCardsPage() {
       console.error(err);
     }
   };
-
 
   const handleDeleteSet = async () => {
     if (!confirm("Delete this entire flashcard set?")) return;
@@ -212,10 +236,12 @@ export default function OverviewOfCardsPage() {
       <div
         style={{
           display: "flex",
-          gap: 30,
-          marginTop: 30,
-          flexWrap: "wrap",
           justifyContent: "center",
+          alignItems: "flex-start",
+          gap: 30,
+          width: "65%",
+          margin: "30px auto",
+          flexWrap: "wrap" as const,
         }}
       >
         {/* LEFT COLUMN */}
@@ -251,69 +277,77 @@ export default function OverviewOfCardsPage() {
                 onChange={(e) => setEditDescription(e.target.value)}
                 style={{
                   width: "100%",
-                  marginTop: 12,
-                  padding: 10,
-                  borderRadius: 8,
+                  padding: 12,
+                  borderRadius: 10,
                   border: "1px solid #ccc",
-                  minHeight: 120,
                   fontSize: 16,
+                  minHeight: 120,
+                  marginBottom: 25,
                 }}
               />
 
-              <div style={{ marginTop: 20 }}>
-                <h3>Edit Cards</h3>
-                {cards.map((card, i) => (
-                  <div key={card.id} style={{ marginBottom: 20 }}>
-                    <input
-                      value={editTerms[i]}
-                      onChange={(e) =>
-                        setEditTerms((prev) => {
-                          const copy = [...prev];
-                          copy[i] = e.target.value;
-                          return copy;
-                        })
-                      }
-                      placeholder="Term"
-                      style={{
-                        width: "100%",
-                        padding: 10,
-                        marginBottom: 6,
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                      }}
-                    />
+              {/* CARDS — CLEAN INPUTS */}
+              <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 15 }}>
+                Edit Flashcards
+              </h3>
 
-                    <input
-                      value={editDefinitions[i]}
-                      onChange={(e) =>
-                        setEditDefinitions((prev) => {
-                          const copy = [...prev];
-                          copy[i] = e.target.value;
-                          return copy;
-                        })
-                      }
-                      placeholder="Definition"
-                      style={{
-                        width: "100%",
-                        padding: 10,
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
+              {cards.map((card, i) => (
+                <div key={card.id} style={{ marginBottom: 25 }}>
+                  {/* TERM */}
+                  <input
+                    value={editTerms[i]}
+                    onChange={(e) =>
+                      setEditTerms((prev) => {
+                        const copy = [...prev];
+                        copy[i] = e.target.value;
+                        return copy;
+                      })
+                    }
+                    placeholder="Term"
+                    style={{
+                      width: "100%",
+                      padding: 12,
+                      marginBottom: 10,
+                      borderRadius: 10,
+                      border: "1px solid #ccc",
+                      fontSize: 16,
+                    }}
+                  />
 
+                  {/* DEFINITION */}
+                  <textarea
+                    value={editDefinitions[i]}
+                    onChange={(e) =>
+                      setEditDefinitions((prev) => {
+                        const copy = [...prev];
+                        copy[i] = e.target.value;
+                        return copy;
+                      })
+                    }
+                    placeholder="Definition"
+                    style={{
+                      width: "100%",
+                      padding: 12,
+                      borderRadius: 10,
+                      border: "1px solid #ccc",
+                      fontSize: 16,
+                      minHeight: 100,
+                    }}
+                  />
+                </div>
+              ))}
 
-              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+              {/* BUTTONS */}
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
                 <button
                   onClick={handleUpdateSet}
                   style={{
                     background: "#4A1942",
                     color: "white",
-                    padding: "8px 14px",
-                    borderRadius: 8,
+                    padding: "10px 18px",
+                    borderRadius: 10,
                     border: "none",
+                    fontSize: 15,
                   }}
                 >
                   Save
@@ -328,9 +362,10 @@ export default function OverviewOfCardsPage() {
                   style={{
                     background: "#ccc",
                     color: "#333",
-                    padding: "8px 14px",
-                    borderRadius: 8,
+                    padding: "10px 18px",
+                    borderRadius: 10,
                     border: "none",
+                    fontSize: 15,
                   }}
                 >
                   Cancel
@@ -339,14 +374,9 @@ export default function OverviewOfCardsPage() {
             </>
           ) : (
             <>
-              <h1 style={{ fontSize: 28, fontWeight: 700 }}>
-                {setData.title}
-              </h1>
-              <p style={{ color: "#555", marginTop: 8 }}>
-                {setData.description}
-              </p>
+              <h1 style={{ fontSize: 28, fontWeight: 700 }}>{setData.title}</h1>
+              <p style={{ color: "#555", marginTop: 8 }}>{setData.description}</p>
 
-              {/* MENU BUTTON */}
               {isOwner && (
                 <div style={{ position: "absolute", top: 20, right: 20 }}>
                   <button
@@ -371,7 +401,7 @@ export default function OverviewOfCardsPage() {
                         borderRadius: 10,
                         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         minWidth: 150,
-                        zIndex: 5,
+                        zIndex: 10,
                       }}
                     >
                       <button
@@ -392,7 +422,7 @@ export default function OverviewOfCardsPage() {
                       </button>
 
                       <button
-                        onClick={handleDeleteSet}
+                        onClick={() => handleDeleteSet()}
                         style={{
                           padding: "10px 14px",
                           border: "none",

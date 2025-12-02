@@ -171,7 +171,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
   const copyCode = () => {
     if (classData?.classCode) {
       navigator.clipboard.writeText(classData.classCode);
-      alert("Class code copied!");
+      // alert("Class code copied!");
     }
   };
 

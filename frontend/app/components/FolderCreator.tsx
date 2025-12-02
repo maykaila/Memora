@@ -53,7 +53,7 @@ export default function CreateFolderModal({ isOpen, onClose, onSuccess, role }: 
 
     } catch (error) {
       console.error(error);
-      alert("Failed to create folder. Please try again.");
+      // alert("Failed to create folder. Please try again.");
     } finally {
       setIsLoading(false);
     }

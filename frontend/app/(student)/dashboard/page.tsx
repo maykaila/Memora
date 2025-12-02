@@ -7,7 +7,6 @@ import { auth } from "../../../initializeFirebase";
 import { BookOpen, Globe, Lock, Folder, GraduationCap, ChevronLeft, ChevronRight } from "lucide-react"; 
 import Link from "next/link"; 
 import styles from "../../components/dashboardLayout.module.css"; 
-// IMPORT YOUR EXISTING COMPONENT (Now acting as a modal)
 import FolderCreator from "../../components/FolderCreator";
 
 interface FlashcardSet {
@@ -38,11 +37,11 @@ export default function StudentDashboard() {
   
   // PAGINATION STATE FOR EXPLORE
   const [exploreOffset, setExploreOffset] = useState(0);
-  const EXPLORE_PAGE_SIZE = 12; // Approx 3 rows (assuming 4 cards per row)
+  const EXPLORE_PAGE_SIZE = 12; 
   
   // LIMITS FOR OTHER SECTIONS
-  const RECENTS_LIMIT = 8; // Approx 2 rows
-  const FOLDERS_LIMIT = 8; // Approx 2 rows
+  const RECENTS_LIMIT = 8; 
+  const FOLDERS_LIMIT = 8; 
 
   const router = useRouter();
 
@@ -124,7 +123,6 @@ export default function StudentDashboard() {
   };
 
   const renderRecents = () => {
-    // Slice to limit to ~2 rows
     const recentSets = mySets.slice(0, RECENTS_LIMIT);
     
     if (recentSets.length === 0) return <div className={styles.emptyText}>You don&apos;t have any recent decks yet.</div>;
@@ -135,8 +133,10 @@ export default function StudentDashboard() {
             <div className={`${styles.iconBox} ${styles.iconPurple}`}>
               <BookOpen size={20} />
             </div>
-            <div>
-              <div className={styles.cardTitle}>{set.title}</div>
+            
+            {/* UPDATED CONTAINER */}
+            <div style={{ flex: 1, minWidth: '100px' }}>
+              <div className={styles.cardTitle} title={set.title}>{set.title}</div>
               <div className={styles.cardMeta}>
                 {(set.visibility === true || String(set.visibility).toLowerCase() === "public") ? <Globe size={12}/> : <Lock size={12}/>} 
                 <span style={{marginLeft: '4px'}}>{formatDate(set.dateCreated)}</span>
@@ -147,7 +147,6 @@ export default function StudentDashboard() {
                   Created by: <i>{set.createdBy}</i>
                 </p>
               )}
-
             </div>
           </Link>
         ))}
@@ -170,7 +169,6 @@ export default function StudentDashboard() {
         );
     }
 
-    // Slice to limit to ~2 rows
     const visibleFolders = folders.slice(0, FOLDERS_LIMIT);
 
     return (
@@ -186,8 +184,10 @@ export default function StudentDashboard() {
             >
               <Folder size={20} />
             </div>
-            <div>
-              <div className={styles.cardTitle}>{folder.title}</div>
+            
+            {/* UPDATED CONTAINER */}
+            <div style={{ flex: 1, minWidth: '100px' }}>
+              <div className={styles.cardTitle} title={folder.title}>{folder.title}</div>
               <div className={styles.cardMeta}>{folder.itemCount} items</div>
             </div>
           </Link>

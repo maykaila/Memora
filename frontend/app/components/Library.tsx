@@ -340,7 +340,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
               <div key={set.id} className="lib-card" onClick={() => {
                 if(menuOpen !== set.id) {
                    // Dynamic Routing for Overview Page
-                   const path = role === 'teacher' ? `/teacher-overview?id=${set.id}` : `/overviewOfCards?id=${set.id}`;
+                   const path = role === 'teacher' ? `/teacher-cardOverview?id=${set.id}` : `/overviewOfCards?id=${set.id}`;
                    router.push(path);
                 }
               }}>

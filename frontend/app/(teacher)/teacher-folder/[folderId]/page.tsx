@@ -209,7 +209,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
                             <MinusCircle size={28} color="#dc2626" fill="white" />
                         </button>
                     )}
-                    <Link href={`/overviewOfCards?id=${deck.setId}`} className={styles.deckCard}>
+                    <Link href={`/teacher-cardOverview?id=${deck.setId}`} className={styles.deckCard}>
                         <div className={styles.deckIconBox}>
                             <BookOpen size={20} />
                         </div>

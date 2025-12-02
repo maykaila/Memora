@@ -238,7 +238,7 @@ export default function TeacherDashboard() {
     return (
       <div className={styles.recentsGrid}>
         {recentSets.map((set) => (
-          <Link href={`/overviewOfCards?id=${set.setId}`} key={set.setId} className={styles.standardCard}>
+          <Link href={`/teacher-cardOverview?id=${set.setId}`} key={set.setId} className={styles.standardCard}>
             <div className={`${styles.iconBox} ${styles.iconPurple}`}>
               <BookOpen size={20} />
             </div>

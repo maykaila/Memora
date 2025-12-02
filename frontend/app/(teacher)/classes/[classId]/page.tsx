@@ -270,7 +270,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
           </div>
 
           {assignments.map((assign) => (
-            <Link href={`/overviewOfCards?id=${assign.setId}`} key={assign.setId} className={styles.card}>
+            <Link href={`/teacher-cardOverview?id=${assign.setId}`} key={assign.setId} className={styles.card}>
               <div className={styles.cardIcon}>
                 <BookOpen size={20} />
               </div>

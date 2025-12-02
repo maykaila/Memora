@@ -101,7 +101,7 @@ export default function MyClassesPage() {
   const copyCode = (code: string, e: React.MouseEvent) => {
     e.preventDefault();
     navigator.clipboard.writeText(code);
-    alert(`Copied join code: ${code}`);
+    // alert(`Copied join code: ${code}`);
   };
 
   if (isLoading) {

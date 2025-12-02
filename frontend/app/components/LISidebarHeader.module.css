@@ -163,14 +163,19 @@
 
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  /* CHANGE: Center items vertically, push content to the right */
+  align-items: center; 
+  justify-content: flex-end; 
   padding: 0.9rem 1.5rem;
   background: #4a1942;
   color: #f7e8ff;
-  gap: 30rem;
+  gap: 1rem; /* Standard gap between elements */
 }
 
+/* Even if you removed the HTML for searchbar, 
+   leaving these styles here doesn't hurt. 
+   You can delete them if you want to clean up.
+*/
 .searchWrapper {
   flex: 1;
   display: flex;
@@ -248,36 +253,36 @@
 .addMenu {
   position: absolute;
   top: 115%;
-  right: 40px; /* position just under the plus */
-  width: 150px;
+  right: 0;
+  width: 120px;
   background: #f2d7ee;
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  border: 1px solid #ddd0db;
   overflow: hidden;
-  border: 1px solid #4a1942;
-  z-index: 40;
+  z-index: 45;
 }
-
 .addMenuItem {
   width: 100%;
-  padding: 0.55rem 0.75rem;
+  padding: 0.6rem 0.8rem;
   border: none;
-  text-align: left;
   background: #f2d7ee;
+  text-align: left;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.95rem;
   color: #3b0f34;
-  transition: background 0.15s ease;
+  font-weight: 600;
+  border-radius: 10px;
+  margin: 0.1rem 0; /* spacing between items */
+  transition: all 0.s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .addMenuItem:hover {
   background: #f7e8ff;
-}
-
-.addMenuDivider {
-  height: 1px;
-  background: #d4b4d6;
+  color: #4a1942;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
 /* ======================

@@ -8,7 +8,7 @@ import { auth, createUserWithEmailAndPassword } from '../../../initializeFirebas
 import { GraduationCap, School } from "lucide-react"; 
 import styles from '../auth.module.css'; 
 import { updateProfile } from "firebase/auth";
-import { validateEmail, validatePassword, validateUsername } from '../../../services/validation'; // <--- Check this path
+import { validateEmail, validatePassword, validateUsername } from '../../../services/validation'; 
 
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
@@ -123,112 +123,116 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      <div className={styles.authCard}>
-        
-        {/* LEFT SIDE */}
-        <div className={styles.formSection}>
-          <form className={styles.formContainer} onSubmit={handleSignUp}>
-            <h2 style={{ color: '#4a1942', marginBottom: '0px' }}>Create Account</h2>
+    <div className={styles.layoutContainer}>
+      <div className={styles.mainContent}>
+        <div className={styles.pageWrapper}>
+          <div className={styles.authCard}>
             
-            {error && <p className={styles.error}>{error}</p>}
+            {/* LEFT SIDE */}
+            <div className={styles.formSection}>
+              <form className={styles.formContainer} onSubmit={handleSignUp}>
+                <h2 style={{ color: '#4a1942', marginBottom: '0px' }}>Create Account</h2>
+                
+                {error && <p className={styles.error}>{error}</p>}
 
-            {/* Role Selector */}
-            <div style={{ 
-              display: 'flex', 
-              gap: '10px', 
-              marginBottom: '15px', 
-              background: '#f0c9ff', 
-              padding: '5px', 
-              borderRadius: '10px' 
-            }}>
-              <button
-                type="button"
-                onClick={() => setRole('student')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  border: 'none',
-                  borderRadius: '8px',
-                  background: role === 'student' ? '#4a1942' : 'transparent',
-                  color: role === 'student' ? 'white' : '#4a1942',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
-                }}
-              >
-                <GraduationCap size={18} /> Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole('teacher')}
-                style={{
-                  flex: 1,
-                  padding: '8px',
-                  border: 'none',
-                  borderRadius: '8px',
-                  background: role === 'teacher' ? '#4a1942' : 'transparent',
-                  color: role === 'teacher' ? 'white' : '#4a1942',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
-                }}
-              >
-                <School size={18} /> Teacher
-              </button>
+                {/* Role Selector */}
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '10px', 
+                  marginBottom: '15px', 
+                  background: '#f0c9ff', 
+                  padding: '5px', 
+                  borderRadius: '10px' 
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setRole('student')}
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      background: role === 'student' ? '#4a1942' : 'transparent',
+                      color: role === 'student' ? 'white' : '#4a1942',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
+                    }}
+                  >
+                    <GraduationCap size={18} /> Student
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('teacher')}
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: 'none',
+                      borderRadius: '8px',
+                      background: role === 'teacher' ? '#4a1942' : 'transparent',
+                      color: role === 'teacher' ? 'white' : '#4a1942',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px'
+                    }}
+                  >
+                    <School size={18} /> Teacher
+                  </button>
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Username"
+                  className={styles.input}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className={styles.input}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className={styles.input}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  className={styles.input}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
+                  <button type="submit" className={styles.submitButton} disabled={isLoading}>
+                    {isLoading ? "Creating..." : "Sign Up"}
+                  </button>
+                </div>
+
+                <div style={{textAlign: 'center', marginTop: '5px', fontSize: '14px', color: '#555'}}>
+                  Already have an account? <Link href="/login" style={{color: '#d16d6d', fontWeight: 'bold', textDecoration: 'none'}}>Login</Link>
+                </div>
+              </form>
             </div>
 
-            <input
-              type="text"
-              placeholder="Username"
-              className={styles.input}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              className={styles.input}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-              <button type="submit" className={styles.submitButton} disabled={isLoading}>
-                {isLoading ? "Creating..." : "Sign Up"}
-              </button>
+            {/* RIGHT SIDE */}
+            <div className={styles.imageSection}>
+              <Image 
+                src="/1.svg" 
+                alt="Sign Up Visual" 
+                width={500} 
+                height={500} 
+                className={styles.heroImage}
+                priority
+              />
             </div>
-
-            <div style={{textAlign: 'center', marginTop: '5px', fontSize: '14px', color: '#555'}}>
-              Already have an account? <Link href="/login" style={{color: '#d16d6d', fontWeight: 'bold', textDecoration: 'none'}}>Login</Link>
-            </div>
-          </form>
-        </div>
-
-        {/* RIGHT SIDE */}
-        <div className={styles.imageSection}>
-          <Image 
-            src="/1.svg" 
-            alt="Sign Up Visual" 
-            width={500} 
-            height={500} 
-            className={styles.heroImage}
-            priority
-          />
+          </div>
         </div>
       </div>
     </div>

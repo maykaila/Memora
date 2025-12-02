@@ -15,7 +15,7 @@
 
 /* Inner wrapper for consistent width */
 .navbarInner {
-  max-width: 1500px; /* Changed from 500x (typo?) to standard width */
+  max-width: 1600px; /* Changed from 500x (typo?) to standard width */
   margin: 0 20px;
   padding: 0.8rem;
   display: flex;

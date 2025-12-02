@@ -7,7 +7,8 @@ import { auth } from "../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
 import styles from "./landingPage.module.css";
 import Image from "next/image";
-import heroImage from "../../public/1.svg"; // replace with your own hero art
+import heroImage from "../../public/1.svg"; 
+import { Pencil, Users, FolderOpen, ArrowRight, ChevronDown } from "lucide-react"; 
 
 export default function LandingPage() {
   const router = useRouter();
@@ -25,15 +26,15 @@ export default function LandingPage() {
 
   return (
     <div className={styles.landing}>
-      {/* HERO SECTION */}
+      {/* HERO SECTION - Now takes full height */}
       <section className={styles.hero}>
         <div className={styles.heroText}>
           <h1>
-            Remember better with <span className={styles.highlight}>Memora</span>
+            Study smarter with <span className={styles.highlight}>Memora</span>
           </h1>
           <p className={styles.subtitle}>
-            Lightweight spaced-repetition flashcards and notes. Fast. Private.
-            Cross-device.
+            The simple way to create, organize, and share flashcards. 
+            Perfect for independent learners and classrooms.
           </p>
 
           <div className={styles.cta}>
@@ -55,23 +56,73 @@ export default function LandingPage() {
             priority
           />
         </div>
+
+        {/* SCROLL INDICATOR ARROW */}
+        <div className={styles.scrollIndicator}>
+            <span style={{ fontSize: '0.8rem', marginBottom: '5px', fontWeight: 600 }}>Learn more</span>
+            <ChevronDown size={28} />
+        </div>
       </section>
 
-      {/* FEATURES */}
+      {/* FEATURES SECTION */}
       <section className={styles.features}>
-        <div className={styles.grid}>
-          <div className={styles.card}>
-            <h3>Quick capture</h3>
-            <p>Create decks and cards in seconds without leaving your flow.</p>
+        <h2 className={styles.featuresHeader}>Why choose Memora?</h2>
+        
+        <div className={styles.featureList}>
+          
+          {/* Feature 1 */}
+          <div className={styles.featureCard}>
+            <div className={styles.iconBox}>
+              <Pencil size={32} strokeWidth={2} />
+            </div>
+            <div className={styles.featureContent}>
+              <h3>Simple creation</h3>
+              <p>
+                Build your flashcards exactly the way you want. 
+                Our manual editor gives you full control to create, edit, and 
+                format your terms and definitions without unnecessary complexity.
+              </p>
+            </div>
           </div>
-          <div className={styles.card}>
-            <h3>Smart reviews</h3>
-            <p>Stay on track with gentle streaks and thoughtful reminders.</p>
+
+          {/* Feature 2 */}
+          <div className={styles.featureCard}>
+            <div className={styles.iconBox}>
+              <Users size={32} strokeWidth={2} />
+            </div>
+            <div className={styles.featureContent}>
+              <h3>Classroom connected</h3>
+              <p>
+                Teachers can create classes and assign decks directly to students. 
+                Students simply enter a class code to join and automatically see 
+                everything their teacher has assigned.
+              </p>
+            </div>
           </div>
-          <div className={styles.card}>
-            <h3>Organized library</h3>
-            <p>Tags & categories keep everything tidy and easy to find.</p>
+
+          {/* Feature 3 */}
+          <div className={styles.featureCard}>
+            <div className={styles.iconBox}>
+              <FolderOpen size={32} strokeWidth={2} />
+            </div>
+            <div className={styles.featureContent}>
+              <h3>Organized library</h3>
+              <p>
+                Keep your study materials structured. Access your most recently 
+                used decks instantly or organize your flashcard sets into 
+                custom folders for easy retrieval.
+              </p>
+            </div>
           </div>
+
+        </div>
+
+        {/* Bottom CTA */}
+        <div className={styles.bottomCta}>
+            <h3>Ready to start learning?</h3>
+            <Link href="/signup" className={styles.textLink}>
+                Create your free account <ArrowRight size={18} />
+            </Link>
         </div>
       </section>
     </div>

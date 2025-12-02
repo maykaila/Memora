@@ -26,5 +26,8 @@ namespace Memora.Services
         // Get cards
         Task<List<Flashcard>> GetCardsForSetAsync(string setId);
         
+        // update decks
+        Task<FlashcardSet?> UpdateSetAsync(string userId, string setId, UpdateFlashcardSetDto dto);
+
     }
 }

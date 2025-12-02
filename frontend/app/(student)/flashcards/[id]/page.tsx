@@ -5,10 +5,11 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function FlashcardPage() {
-  const params = useParams();
-  const setId = params?.id as string;
+  const { id } = useParams();
+  const setId = id as string;
 
   const [cards, setCards] = useState<any[]>([]);
+  const [setName, setSetName] = useState("");
   const [current, setCurrent] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,8 +38,25 @@ export default function FlashcardPage() {
     setLoading(false);
   };
 
+  /** Fetch set info */
+  const fetchSetInfo = async () => {
+    const res = await fetch(
+      `http://localhost:5261/api/flashcardsets/${setId}`,
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+
+    if (!res.ok) {
+      console.error("Failed to fetch set info");
+      return;
+    }
+
+    const data = await res.json();
+    setSetName(data.name || data.title || "Flashcards");
+  };
+
   useEffect(() => {
     fetchCards();
+    fetchSetInfo();
   }, []);
 
   const nextCard = () => {
@@ -82,7 +100,7 @@ export default function FlashcardPage() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <h2 style={title}>Flashcards</h2>
+      <h2 style={title}>{setName}</h2>
 
       {/* Progress Bar */}
       <div style={progressBarContainer}>

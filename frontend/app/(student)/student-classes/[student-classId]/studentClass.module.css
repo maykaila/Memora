@@ -163,6 +163,7 @@
   transition: transform 0.2s;
   text-decoration: none;
   color: inherit;
+  cursor: pointer;
 }
 
 .assignmentCard:hover {

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Folder, BookOpen, Settings, Edit2, Trash2, MinusCircle } from "lucide-react";
+import { Folder, BookOpen, Settings, Edit2, Trash2, MinusCircle } from "lucide-react";
 import { auth } from "../../../../initializeFirebase"; 
-import styles from "../../../components/folderDetails.module.css"; // Shared CSS
+import styles from "../../../components/folderDetails.module.css"; 
 
+// ... interfaces remain the same ...
 interface FolderDetails {
   id: string;
   title: string;
@@ -25,53 +26,87 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
   const [decks, setDecks] = useState<DeckItem[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Edit Mode States
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editTitle, setEditTitle] = useState("");
 
   const router = useRouter();
 
+  // 1. Unwrap Params
   useEffect(() => {
     params.then(p => setFolderId(p.folderId));
   }, [params]);
 
-  useEffect(() => {
+  // 2. Define Fetch Functions Separately
+  
+  // Only fetch Folder Metadata (Title/Desc) once or manually
+  const fetchFolderData = useCallback(async () => {
     if (!folderId) return;
-    fetchData();
-  }, [folderId]);
-
-  const fetchData = async () => {
     const user = auth.currentUser;
     if (!user) return;
     const token = await user.getIdToken();
-    const headers = { Authorization: `Bearer ${token}` };
+    
+    try {
+      const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+         headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFolder(data);
+        // We only set this once so we don't overwrite user typing
+        setEditTitle(prev => prev || data.title); 
+      }
+    } catch (err) { console.error(err); }
+  }, [folderId]);
+
+  // Fetch Decks independently (Safe to poll this!)
+  const fetchDecks = useCallback(async () => {
+    if (!folderId) return;
+    const user = auth.currentUser;
+    if (!user) return;
+    const token = await user.getIdToken();
 
     try {
-      const folderRes = await fetch(`http://localhost:5261/api/folders/${folderId}`, { headers });
-      if (folderRes.ok) {
-        const data = await folderRes.json();
-        setFolder(data);
-        setEditTitle(data.title);
-      }
-
-      const decksRes = await fetch(`http://localhost:5261/api/folders/${folderId}/decks`, { headers });
-      if (decksRes.ok) {
-        const rawDecks = await decksRes.json();
-        setDecks(rawDecks.map((d: any) => ({
+      const res = await fetch(`http://localhost:5261/api/folders/${folderId}/decks`, {
+         headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const rawDecks = await res.json();
+        // Map the response to your interface
+        const mappedDecks = rawDecks.map((d: any) => ({
            setId: d.setId || d.flashcardSetId || d.id,
            title: d.title,
            dateCreated: d.dateCreated
-        })));
+        }));
+        setDecks(mappedDecks);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    } catch (err) { console.error(err); }
+  }, [folderId]);
 
+
+  // 3. Initial Load & Polling Logic
+  useEffect(() => {
+    if (!folderId) return;
+
+    const init = async () => {
+      await Promise.all([fetchFolderData(), fetchDecks()]);
+      setLoading(false);
+    };
+    init();
+
+    // POLL: Check for new decks every 5 seconds
+    // This makes the count update if a deck is added from elsewhere
+    const interval = setInterval(() => {
+      fetchDecks(); 
+    }, 3000); 
+
+    return () => clearInterval(interval);
+  }, [folderId, fetchFolderData, fetchDecks]);
+
+
+  // ... Handle Updates / Delete functions remain the same ...
   const handleUpdateFolder = async () => {
+    // ... (Your existing code)
     if (!editTitle.trim()) return;
     try {
         const user = auth.currentUser;
@@ -97,19 +132,20 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
   };
 
   const handleDeleteFolder = async () => {
-    if (!confirm("Delete this folder?")) return;
-    try {
-        const user = auth.currentUser;
-        if (!user) return;
-        const token = await user.getIdToken();
-
-        const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (res.ok) router.push('/teacher-dashboard');
-    } catch (e) { console.error(e); }
+     // ... (Your existing code)
+     if (!confirm("Delete this folder?")) return;
+     try {
+         const user = auth.currentUser;
+         if (!user) return;
+         const token = await user.getIdToken();
+ 
+         const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+             method: 'DELETE',
+             headers: { Authorization: `Bearer ${token}` }
+         });
+ 
+         if (res.ok) router.push('/teacher-dashboard');
+     } catch (e) { console.error(e); }
   };
 
   const handleRemoveDeckFromFolder = async (deckId: string) => {
@@ -124,6 +160,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
             headers: { Authorization: `Bearer ${token}` }
         });
 
+        // This line updates the UI instantly for removal!
         if (res.ok) setDecks(prev => prev.filter(d => d.setId !== deckId));
     } catch (e) { console.error(e); }
   };
@@ -133,12 +170,8 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
 
   return (
     <div className={styles.container}>
-      
-      {/* <button onClick={() => router.push('/teacher-dashboard')} className={styles.backBtn}>
-        <ArrowLeft size={18} /> Back to Dashboard
-      </button> */}
-
-      <div className={styles.headerCard}>
+       {/* ... Your JSX remains exactly the same ... */}
+       <div className={styles.headerCard}>
         <div className={styles.iconContainer} style={{ background: '#e0f2fe', color: '#0284c7' }}>
            <Folder size={32} />
         </div>
@@ -147,22 +180,23 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
            {isEditMode ? (
              <div>
                 <input 
-                    className={styles.editTitleInput}
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    autoFocus
+                   className={styles.editTitleInput}
+                   value={editTitle}
+                   onChange={(e) => setEditTitle(e.target.value)}
+                   autoFocus
                 />
                 <div className={styles.editActions}>
-                    <button className={styles.saveBtn} onClick={handleUpdateFolder}>Save</button>
-                    <button className={styles.cancelBtn} onClick={() => {
-                        setIsEditMode(false);
-                        setEditTitle(folder.title);
-                    }}>Cancel</button>
+                   <button className={styles.saveBtn} onClick={handleUpdateFolder}>Save</button>
+                   <button className={styles.cancelBtn} onClick={() => {
+                       setIsEditMode(false);
+                       setEditTitle(folder.title);
+                   }}>Cancel</button>
                 </div>
              </div>
            ) : (
              <>
                 <h1 className={styles.folderTitle}>{folder.title}</h1>
+                {/* decks.length will now update automatically via polling or manual delete */}
                 <p className={styles.folderMeta}>{folder.description || "No description"} • {decks.length} Decks</p>
              </>
            )}
@@ -209,7 +243,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
                             <MinusCircle size={28} color="#dc2626" fill="white" />
                         </button>
                     )}
-                    <Link href={`/overviewOfCards?id=${deck.setId}`} className={styles.deckCard}>
+                    <Link href={`/teacher-cardOverview?id=${deck.setId}`} className={styles.deckCard}>
                         <div className={styles.deckIconBox}>
                             <BookOpen size={20} />
                         </div>

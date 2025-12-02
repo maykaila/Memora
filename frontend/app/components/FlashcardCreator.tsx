@@ -75,17 +75,17 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
     const idToken = await user.getIdToken();
 
     const cardData = validCards.map(card => ({
-      Term: card.term,
-      Definition: card.definition,
+      term: card.term,
+      definition: card.definition,
     }));
 
     const body = JSON.stringify({
-      Title: title,
-      Description: description,
-      Visibility: isPublic, 
-      Cards: cardData,
+      title: title,
+      description: description,
+      visibility: isPublic, 
+      cards: cardData,
       // We can optionally send the role to the backend if needed
-      CreatedByRole: role 
+      createdByRole: role 
     });
 
     try {

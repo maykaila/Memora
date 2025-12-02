@@ -8,8 +8,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import Link from "next/link"; 
 
 import {
-  MoreVertical, Edit, Trash2, BookOpen, Clock, Search, Filter, Plus, Loader2, Calendar, FolderPlus, Folder, 
-  FileText // Added FileText icon for the description
+  MoreVertical, Trash2, BookOpen, Clock, Search, Plus, Loader2, Calendar, FolderPlus, Folder, 
+  FileText 
 } from "lucide-react";
 
 import AddToFolderModal from "./AddToFolderModal";
@@ -22,7 +22,7 @@ type LibrarySet = {
   formattedDate: string;
   timeAgo: string; 
   cardCount: number;
-  description: string; // <--- CHANGED: Added description instead of category
+  description: string;
 };
 
 type LibraryFolder = {
@@ -51,26 +51,23 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
 
-  // --- Helper: Format Time Ago (Today / Yesterday / Days Ago) ---
+  // --- Helper: Format Time Ago ---
   const formatTimeAgo = (dateString: string) => {
     if (!dateString) return "";
     
     const date = new Date(dateString);
     const now = new Date();
 
-    // 1. Check if it is the same Calendar Day (Today)
     if (date.toDateString() === now.toDateString()) {
       return "Today";
     }
 
-    // 2. Check if it was Yesterday
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     if (date.toDateString() === yesterday.toDateString()) {
       return "Yesterday";
     }
 
-    // 3. Otherwise, calculate days/months/years ago
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
 
@@ -117,8 +114,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                 formattedDate: formatDate(item.DateCreated || item.dateCreated),
                 timeAgo: formatTimeAgo(activeDate),
                 cardCount: item.Flashcards ? item.Flashcards.length : (item.flashcards ? item.flashcards.length : 0),
-                
-                // <--- CHANGED: Map the description here
                 description: item.Description || item.description || "No description", 
             };
         }));
@@ -172,16 +167,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
   const handleCreateSet = () => {
     if (role === "teacher") router.push("/teacher-create");
     else router.push("/create");
-  };
-
-  const handleSearchByCategory = () => {
-    alert("Search by category clicked — hook this to tag-based filtering.");
-  };
-
-  const handleEdit = (id: string) => {
-    if (role === "teacher") router.push(`/teacher-create?id=${id}`);
-    else router.push(`/create?id=${id}`);
-    setMenuOpen(null);
   };
 
   const handleAddToFolderClick = (id: string) => {
@@ -263,13 +248,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
             />
           </div>
 
-          <button
-            className="lib-top-btn lib-top-btn-outline"
-            onClick={handleSearchByCategory}
-          >
-            <Filter size={18} />
-            Search by category
-          </button>
+          {/* REMOVED: Search by Category Button */}
 
           {/* DYNAMIC CREATE BUTTON */}
           {activeTab === 'sets' ? (
@@ -291,7 +270,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
           )}
         </div>
 
-        {/* TABS WITH GRAY-OUT EFFECT */}
+        {/* TABS */}
         <div style={{ display: 'flex', gap: '30px', marginBottom: '25px', alignItems: 'baseline', borderBottom:'1px solid #eee', paddingBottom:'10px' }}>
           <h1 
             onClick={() => setActiveTab('sets')}
@@ -339,7 +318,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
             {filteredSets.map((set) => (
               <div key={set.id} className="lib-card" onClick={() => {
                 if(menuOpen !== set.id) {
-                   // Dynamic Routing for Overview Page
                    const path = role === 'teacher' ? `/teacher-overview?id=${set.id}` : `/overviewOfCards?id=${set.id}`;
                    router.push(path);
                 }
@@ -360,14 +338,13 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                       </span>
                       <span>|</span>
                       
-                      {/* --- CHANGED: Description Display --- */}
                       <span style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
                           gap: '4px', 
                           color: '#666', 
                           fontSize: '0.85rem',
-                          maxWidth: '200px', // Truncate if too long
+                          maxWidth: '200px',
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis'
@@ -375,7 +352,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                         <FileText size={12} /> 
                         {set.description}
                       </span>
-                      {/* ------------------------------------- */}
                       
                     </div>
                   </div>
@@ -384,12 +360,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                 <div className="lib-card-actions">
                   {menuOpen === set.id && (
                     <div className="lib-popup-menu-inline" onClick={e => e.stopPropagation()}>
-                      <button
-                        className="lib-action-btn lib-edit-btn"
-                        onClick={(e) => { e.stopPropagation(); handleEdit(set.id); }}
-                      >
-                        <Edit size={16} /> Edit
-                      </button>
+                      {/* REMOVED: Edit Button */}
 
                       <button
                         className="lib-action-btn lib-folder-btn"

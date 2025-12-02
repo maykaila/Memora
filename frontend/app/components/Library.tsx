@@ -313,7 +313,9 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
             {filteredSets.map((set) => (
               <div key={set.id} className="lib-card" onClick={() => {
                 if(menuOpen !== set.id) {
-                   router.push(`/overviewOfCards?id=${set.id}`);
+                   // Dynamic Routing for Overview Page
+                   const path = role === 'teacher' ? `/teacher-overview?id=${set.id}` : `/overviewOfCards?id=${set.id}`;
+                   router.push(path);
                 }
               }}>
                 <div className="lib-card-main">
@@ -390,14 +392,23 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
               </div>
             ) : (
               filteredFolders.map((folder) => (
-                <div 
-                    key={folder.folderId} 
-                    className="lib-card" 
-                    onClick={() => {
-                        // Dynamic Routing based on Role to avoid collision
-                        const path = role === 'teacher' ? `/teacher-folder/${folder.folderId}` : `/folder/${folder.folderId}`;
-                        router.push(path);
-                    }}
+                <Link 
+                  href={role === 'teacher' ? `/teacher-folder/${folder.folderId}` : `/folder/${folder.folderId}`} 
+                  key={folder.folderId} 
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem 1.2rem',
+                    borderRadius: '18px',
+                    background: '#fff',
+                    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.04)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    border: '2px solid transparent',
+                    cursor: 'pointer'
+                  }}
                 >
                   <div className="lib-card-main">
                     <div className="lib-pill-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
@@ -408,7 +419,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                       <div className="lib-card-meta">{folder.itemCount} items</div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>

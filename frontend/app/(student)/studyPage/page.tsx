@@ -1,1 +1,3 @@
-// Placeholder for STUDY MODE PAGE
+export default function StudyPage() {
+  return <div>Study Page Placeholder</div>;
+}

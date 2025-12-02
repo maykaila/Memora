@@ -2,6 +2,9 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { auth } from "../../../initializeFirebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { Pencil } from "lucide-react";
 
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
@@ -12,14 +15,33 @@ export default function OverviewOfCardsPage() {
   const [cards, setCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+
+  // get the logged in user
+  const loggedInUserUID = firebaseUser?.uid;
+  console.log("Logged in UID:", loggedInUserUID);
+
+  const getLoggedInUser = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.uid || payload.userId || null;
+    } catch {
+      return null;
+    }
+  };
+  
 
   /** Normalize set object from backend */
   const normalizeSet = (raw: any) => ({
     id: raw.setId || raw.id,
     title: raw.title,
     description: raw.description,
-    createdBy: raw.createdBy || raw.createdByUser || raw.owner || raw.ownerName,
-    tags: raw.tagIds || raw.tag_ids || [],
+    createdBy: raw.createdBy,
+    createdByUID: raw.userId, 
+    tags: raw.tagIds || [],
   });
 
   /** Normalize card object */
@@ -85,6 +107,7 @@ export default function OverviewOfCardsPage() {
     borderRadius: 20,
     boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
     minWidth: 75,
+    position: "relative" as const,
   };
 
   const rightColumn = {
@@ -94,13 +117,6 @@ export default function OverviewOfCardsPage() {
     borderRadius: 20,
     boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
     minWidth: 320,
-  };
-  
-  const cardContainer = {
-    backgroundColor: "#fff",
-    padding: 40,
-    borderRadius: 20,
-    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
   };
 
   const titleText = {
@@ -137,6 +153,18 @@ export default function OverviewOfCardsPage() {
     borderBottom: "1px solid #eee",
   };
 
+  const editIconStyle = {
+    position: "absolute" as const,
+    top: 15,
+    right: 15,
+    cursor: "pointer",
+    fontSize: 20,
+    color: "#4a1942",
+    opacity: 0.8,
+    transition: "0.2s",
+  };
+
+
   /* ============================= */
   /*      REUSABLE COMPONENTS      */
   /* ============================= */ 
@@ -167,8 +195,14 @@ export default function OverviewOfCardsPage() {
     </button>
   );
 
-  /** Load set + cards */
   useEffect(() => {
+    // listen for firebase auth changes
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setFirebaseUser(user);
+      console.log("Firebase Auth Loaded User:", user?.uid);
+    });
+
+    // load set and cards
     const loadData = async () => {
       if (!setId) return;
 
@@ -191,9 +225,26 @@ export default function OverviewOfCardsPage() {
       } finally {
         setLoading(false);
       }
+
+      /** -----------------------------
+     * TEMPORARY DEBUG: Decode JWT
+     * ---------------------------- */
+      const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            console.log("JWT PAYLOAD:", payload);
+          } catch (err) {
+            console.log("Could not parse JWT:", err);
+          }
+        } else {
+          console.log("No token found.");
+        }
     };
 
     loadData();
+
+    return () => unsubscribe();
   }, [setId]);
 
   if (loading) {
@@ -212,6 +263,22 @@ export default function OverviewOfCardsPage() {
     );
   }
 
+  const loggedInUID = firebaseUser?.uid;
+
+  const isOwner =
+    loggedInUID &&
+    setData?.createdByUID &&
+    setData.createdByUID === loggedInUID;
+
+  console.log("Logged in user:", loggedInUID);
+  console.log("Set created by:", setData?.createdBy);
+  console.log("Is owner:", isOwner);
+  console.log("Full setData:", setData);
+
+  const handleEditSet = () => {
+    router.push(`/edit-set/${setId}`);
+  };
+
   return (
     <PageContainer>
       <div style={twoColumnWrapper}>
@@ -219,7 +286,21 @@ export default function OverviewOfCardsPage() {
         {/* LEFT SIDE — SET INFORMATION */}
         <div style={leftColumn}>
           <h1 style={titleText}>{setData.title}</h1>
-
+            {isOwner && (
+              <button
+                onClick={handleEditSet}
+                style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "4px",
+                    display: "flex",
+                    alignItems: "center",
+                }}
+              >
+                <Pencil size={20} color="#4A1942" />
+            </button>
+            )}
           <p style={subtitleText}>{setData.description}</p>
 
           {setData.createdBy && (

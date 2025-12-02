@@ -8,7 +8,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import Link from "next/link"; 
 
 import {
-  MoreVertical, Edit, Trash2, BookOpen, Clock, Search, Filter, Plus, Loader2, Calendar, FolderPlus, Folder
+  MoreVertical, Edit, Trash2, BookOpen, Clock, Search, Filter, Plus, Loader2, Calendar, FolderPlus, Folder, 
+  FileText // Added FileText icon for the description
 } from "lucide-react";
 
 import AddToFolderModal from "./AddToFolderModal";
@@ -19,8 +20,9 @@ type LibrarySet = {
   id: string;
   title: string;
   formattedDate: string;
-  daysAgo: number;
-  category: string;
+  timeAgo: string; 
+  cardCount: number;
+  description: string; // <--- CHANGED: Added description instead of category
 };
 
 type LibraryFolder = {
@@ -29,12 +31,10 @@ type LibraryFolder = {
   itemCount: number;
 };
 
-// 1. Add Props Interface
 interface LibraryPageProps {
   role?: "student" | "teacher";
 }
 
-// 2. Accept Role Prop (Defaults to student)
 export default function LibraryPage({ role = "student" }: LibraryPageProps) {
   const router = useRouter();
 
@@ -51,13 +51,40 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
 
-  // --- Helper: Calculate Days Ago ---
-  const calculateDaysAgo = (dateString: string) => {
-    if (!dateString) return 0;
-    const createdDate = new Date(dateString);
+  // --- Helper: Format Time Ago (Today / Yesterday / Days Ago) ---
+  const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return "";
+    
+    const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - createdDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+    // 1. Check if it is the same Calendar Day (Today)
+    if (date.toDateString() === now.toDateString()) {
+      return "Today";
+    }
+
+    // 2. Check if it was Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    }
+
+    // 3. Otherwise, calculate days/months/years ago
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
+
+    if (diffInDays < 30) {
+        return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    }
+
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) {
+        return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+    }
+
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
   };
 
   // --- Helper: Format Date ---
@@ -81,25 +108,26 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
       const setsRes = await fetch("http://localhost:5261/api/flashcardsets/my-sets", { headers });
       if (setsRes.ok) {
         const data = await setsRes.json();
-        setSets(data.map((item: any) => ({
-          id: item.SetId || item.setId || "unknown",
-          title: item.Title || item.title || "Untitled Set", 
-          formattedDate: formatDate(item.DateCreated || item.dateCreated),
-          daysAgo: calculateDaysAgo(item.DateCreated || item.dateCreated),
-          category: (item.TagIds && item.TagIds.length > 0) 
-            ? item.TagIds[0] 
-            : (item.tagIds && item.tagIds.length > 0) 
-            ? item.tagIds[0] 
-            : "General",
-        })));
+        setSets(data.map((item: any) => {
+             const activeDate = item.LastViewed || item.lastViewed || item.DateModified || item.dateModified || item.DateCreated || item.dateCreated;
+
+             return {
+                id: item.SetId || item.setId || "unknown",
+                title: item.Title || item.title || "Untitled Set", 
+                formattedDate: formatDate(item.DateCreated || item.dateCreated),
+                timeAgo: formatTimeAgo(activeDate),
+                cardCount: item.Flashcards ? item.Flashcards.length : (item.flashcards ? item.flashcards.length : 0),
+                
+                // <--- CHANGED: Map the description here
+                description: item.Description || item.description || "No description", 
+            };
+        }));
       }
 
       // 2. Fetch Folders
       const foldersRes = await fetch("http://localhost:5261/api/folders/my-folders", { headers });
       if (foldersRes.ok) {
         const folderData = await foldersRes.json();
-        
-        // Manual mapping to handle PascalCase vs camelCase issues safely
         setFolders(folderData.map((f: any) => ({
              folderId: f.FolderId || f.folderId || "unknown_id",
              title: f.Title || f.title || "Untitled Folder",
@@ -271,7 +299,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                 cursor: 'pointer', 
                 margin: 0,
                 fontSize: '2rem',
-                // Active vs Inactive Styles
                 color: activeTab === 'sets' ? '#4a1942' : '#94718fff', 
                 borderBottom: activeTab === 'sets' ? '3px solid #4a1942' : '3px solid transparent',
                 paddingBottom: '5px',
@@ -286,7 +313,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                 cursor: 'pointer', 
                 margin: 0,
                 fontSize: '2rem',
-                // Active vs Inactive Styles
                 color: activeTab === 'folders' ? '#4a1942' : '#94718fff', 
                 borderBottom: activeTab === 'folders' ? '3px solid #4a1942' : '3px solid transparent',
                 paddingBottom: '5px',
@@ -328,12 +354,27 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                       </span>
                       <span>|</span>
                       <span className="lib-card-time-meta">
-                        <Clock size={12} /> {set.daysAgo} days ago
+                        <Clock size={12} /> {set.timeAgo}
                       </span>
                       <span>|</span>
-                      <span className="lib-card-category-pill">
-                        {set.category}
+                      
+                      {/* --- CHANGED: Description Display --- */}
+                      <span style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '4px', 
+                          color: '#666', 
+                          fontSize: '0.85rem',
+                          maxWidth: '200px', // Truncate if too long
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                      }}>
+                        <FileText size={12} /> 
+                        {set.description}
                       </span>
+                      {/* ------------------------------------- */}
+                      
                     </div>
                   </div>
                 </div>
@@ -348,7 +389,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                         <Edit size={16} /> Edit
                       </button>
 
-                      {/* Add to Folder */}
                       <button
                         className="lib-action-btn lib-folder-btn"
                         onClick={(e) => { e.stopPropagation(); handleAddToFolderClick(set.id); }}
@@ -394,7 +434,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                     key={folder.folderId} 
                     className="lib-card" 
                     onClick={() => {
-                        // Dynamic Routing based on Role to avoid collision
                         const path = role === 'teacher' ? `/teacher-folder/${folder.folderId}` : `/folder/${folder.folderId}`;
                         router.push(path);
                     }}

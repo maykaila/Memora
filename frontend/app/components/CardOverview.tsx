@@ -4,9 +4,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { auth } from "../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { MoreHorizontal, Edit2, Trash2, FolderPlus } from "lucide-react"; // Added FolderPlus
+import { MoreHorizontal, Edit2, Trash2, FolderPlus } from "lucide-react"; 
 
-// Import your Modal
 import AddToFolderModal from "./AddToFolderModal"; 
 
 export default function OverviewOfCardsPage() {
@@ -19,12 +18,12 @@ export default function OverviewOfCardsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  
+  // NEW: State to store the user's role
+  const [userRole, setUserRole] = useState<string>("student"); 
 
-  // menu + edit mode states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  
-  // NEW: Add to Folder Modal State
   const [isAddToFolderOpen, setIsAddToFolderOpen] = useState(false);
 
   // edit fields
@@ -57,8 +56,6 @@ export default function OverviewOfCardsPage() {
   /* ============================= */
 
   const fetchSetDetails = async (id: string) => {
-    // Check local storage safely or rely on firebase auth state if you have an interceptor
-    // For now keeping your existing logic:
     const token = typeof window !== 'undefined' ? localStorage.getItem("token") : ""; 
     
     const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
@@ -83,13 +80,34 @@ export default function OverviewOfCardsPage() {
     return data.map((c: any) => normalizeCard(c));
   };
 
+  // NEW: Fetch User Role
+  const fetchUserRole = async (uid: string, token: string) => {
+    try {
+        const res = await fetch(`http://localhost:5261/api/users/${uid}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.role) setUserRole(data.role);
+        }
+    } catch (e) {
+        console.error("Failed to fetch role", e);
+    }
+  };
+
   /* ============================= */
   /* LOAD DATA             */
   /* ============================= */
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);
+      
+      // Fetch role when user is authenticated
+      if (user) {
+        const token = await user.getIdToken();
+        await fetchUserRole(user.uid, token);
+      }
     });
 
     const loadAll = async () => {
@@ -212,7 +230,6 @@ export default function OverviewOfCardsPage() {
   return (
     <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
       
-      {/* --- ADD TO FOLDER MODAL --- */}
       <AddToFolderModal 
         isOpen={isAddToFolderOpen} 
         onClose={() => setIsAddToFolderOpen(false)} 
@@ -245,7 +262,6 @@ export default function OverviewOfCardsPage() {
           {/* EDIT MODE */}
           {isEditMode ? (
             <>
-              {/* ... (Existing Edit Mode Code) ... */}
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
@@ -257,7 +273,6 @@ export default function OverviewOfCardsPage() {
                 style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #ccc", fontSize: 16, minHeight: 120, marginBottom: 25, marginTop: 10 }}
               />
               
-              {/* Simple Edit Buttons */}
               <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
                 <button onClick={handleUpdateSet} style={{ background: "#4A1942", color: "white", padding: "10px 18px", borderRadius: 10, border: "none" }}>Save</button>
                 <button onClick={() => { setIsEditMode(false); setEditTitle(setData.title); }} style={{ background: "#ccc", color: "#333", padding: "10px 18px", borderRadius: 10, border: "none" }}>Cancel</button>
@@ -268,16 +283,12 @@ export default function OverviewOfCardsPage() {
               <h1 style={{ fontSize: 28, fontWeight: 700 }}>{setData.title}</h1>
               <p style={{ color: "#555", marginTop: 8 }}>{setData.description}</p>
 
-              {/* MENU BUTTON (Only for Owner) */}
+              {/* MENU BUTTON */}
               {isOwner && (
                 <div style={{ position: "absolute", top: 20, right: 20 }}>
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    style={{
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
+                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
                   >
                     <MoreHorizontal size={24} />
                   </button>
@@ -299,19 +310,10 @@ export default function OverviewOfCardsPage() {
                     >
                       {/* 1. EDIT */}
                       <button
-                        onClick={() => {
-                          setIsEditMode(true);
-                          setIsMenuOpen(false);
-                        }}
+                        onClick={() => { setIsEditMode(true); setIsMenuOpen(false); }}
                         style={{
-                          padding: "12px 14px",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "left",
-                          background: "white",
-                          cursor: "pointer",
-                          display: 'flex', alignItems: 'center', gap: '8px',
-                          borderBottom: '1px solid #f0f0f0'
+                          padding: "12px 14px", border: "none", width: "100%", textAlign: "left",
+                          background: "white", cursor: "pointer", display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f0f0f0'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "#f9f9f9"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "white"}
@@ -319,21 +321,12 @@ export default function OverviewOfCardsPage() {
                         <Edit2 size={16} /> Edit Deck
                       </button>
 
-                      {/* 2. NEW: ADD TO FOLDER */}
+                      {/* 2. ADD TO FOLDER */}
                       <button
-                        onClick={() => {
-                          setIsAddToFolderOpen(true);
-                          setIsMenuOpen(false);
-                        }}
+                        onClick={() => { setIsAddToFolderOpen(true); setIsMenuOpen(false); }}
                         style={{
-                          padding: "12px 14px",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "left",
-                          background: "white",
-                          cursor: "pointer",
-                          display: 'flex', alignItems: 'center', gap: '8px',
-                          borderBottom: '1px solid #f0f0f0'
+                          padding: "12px 14px", border: "none", width: "100%", textAlign: "left",
+                          background: "white", cursor: "pointer", display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid #f0f0f0'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "#f9f9f9"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "white"}
@@ -345,14 +338,8 @@ export default function OverviewOfCardsPage() {
                       <button
                         onClick={() => handleDeleteSet()}
                         style={{
-                          padding: "12px 14px",
-                          border: "none",
-                          width: "100%",
-                          textAlign: "left",
-                          background: "white",
-                          cursor: "pointer",
-                          color: "red",
-                          display: 'flex', alignItems: 'center', gap: '8px'
+                          padding: "12px 14px", border: "none", width: "100%", textAlign: "left",
+                          background: "white", cursor: "pointer", color: "red", display: 'flex', alignItems: 'center', gap: '8px'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = "#fff0f0"}
                         onMouseLeave={(e) => e.currentTarget.style.background = "white"}
@@ -378,8 +365,17 @@ export default function OverviewOfCardsPage() {
             </p>
           )}
 
+          {/* --- UPDATED FLASHCARDS BUTTON ROUTING --- */}
           <button
-            onClick={() => router.push(`/flashcards/${setId}`)}
+            onClick={() => {
+                // Determine path based on role
+                const isTeacher = userRole?.toLowerCase() === 'teacher';
+                const path = isTeacher 
+                    ? `/teacher-flashcard/${setId}` 
+                    : `/flashcards/${setId}`;
+                
+                router.push(path);
+            }}
             style={{
               marginTop: 20,
               padding: "10px 20px",
@@ -392,6 +388,8 @@ export default function OverviewOfCardsPage() {
           >
             Flashcards
           </button>
+          {/* ----------------------------------------- */}
+
         </div>
 
         {/* RIGHT COLUMN – TERMS */}

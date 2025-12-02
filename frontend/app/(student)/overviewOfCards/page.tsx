@@ -6,7 +6,6 @@ import { auth } from "../../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { MoreHorizontal, Edit2, Trash2 } from "lucide-react";
 
-
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
   const setId = searchParams.get("id");
@@ -16,213 +15,75 @@ export default function OverviewOfCardsPage() {
   const [cards, setCards] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<any>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const [firebaseUser, setFirebaseUser] = useState<any>(null);
+
+  // menu + edit mode states
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  // edit inputs
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editTerms, setEditTerms] = useState<string[]>([]);
   const [editDefinitions, setEditDefinitions] = useState<string[]>([]);
 
+  /* ============================= */
+  /*       NORMALIZERS             */
+  /* ============================= */
 
-  // get the logged in user
-  const loggedInUserUID = firebaseUser?.uid;
-  console.log("Logged in UID:", loggedInUserUID);
-
-  const getLoggedInUser = () => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return payload.uid || payload.userId || null;
-    } catch {
-      return null;
-    }
-  };
-
-  /** Normalize set object from backend */
   const normalizeSet = (raw: any) => ({
     id: raw.setId || raw.id,
     title: raw.title,
     description: raw.description,
     createdBy: raw.createdBy,
-    createdByUID: raw.userId, 
+    createdByUID: raw.userId,
     tags: raw.tagIds || [],
   });
 
-  /** Normalize card object */
-  const normalizeCard = (raw: any) => ({
-    id: raw.cardId || raw.id,
-    term: raw.term,
-    definition: raw.definition,
+  const normalizeCard = (c: any) => ({
+      id: c.cardId || c.id,
+      term: c.term,
+      definition: c.definition,
   });
 
-  /** Fetch flashcard set info */
+
+  /* ============================= */
+  /*          API CALLS            */
+  /* ============================= */
+
   const fetchSetDetails = async (id: string) => {
     const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
 
     if (!res.ok) return null;
-    const data = await res.json();
-    return normalizeSet(data);
+    return normalizeSet(await res.json());
   };
 
-  /** Fetch all cards in the set */
   const fetchCards = async (id: string) => {
-    const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}/cards`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
+    const res = await fetch(
+      `http://localhost:5261/api/flashcardsets/${id}/cards`,
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      }
+    );
 
     if (!res.ok) return [];
     const data = await res.json();
-
     return data.map((c: any) => normalizeCard(c));
   };
 
-  useEffect(() => {
-    if (!setData) return;
-
-    setEditTitle(setData.title || "");
-    setEditDescription(setData.description || "");
-
-    // Convert your loaded cards → terms + definitions
-    setEditTerms(cards.map(c => c.term));
-    setEditDefinitions(cards.map(c => c.definition));
-  }, [setData, cards]);
-
   /* ============================= */
-  /*             STYLES            */
-  /* ============================= */ 
-
-  const PageContainer = ({ children }: { children: React.ReactNode }) => {
-    return (
-      <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
-        {children}
-      </div>
-    );
-  };
-
-  const twoColumnWrapper = {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    gap: 30,
-    width: "65%",
-    margin: "30px auto",
-    flexWrap: "wrap" as const,
-  };
-
-  const leftColumn = {
-    flex: "1 1 40%",
-    backgroundColor: "#fff",
-    padding: 50,
-    borderRadius: 20,
-    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-    minWidth: 75,
-    position: "relative" as const,
-  };
-
-  const rightColumn = {
-    flex: "1 1 55%",
-    backgroundColor: "#fff",
-    padding: 50,
-    borderRadius: 20,
-    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-    minWidth: 320,
-  };
-
-  const titleText = {
-    fontSize: 28,
-    fontWeight: 700,
-    marginBottom: 10,
-  };
-
-  const subtitleText = {
-    color: "#555",
-    marginBottom: 5,
-  };
-
-  const tagStyle = {
-    color: "#6a0dad",
-    fontStyle: "italic",
-    marginBottom: 20,
-  };
-
-  const buttonGroup = {
-    display: "flex",
-    gap: 15,
-    margin: "20px 0 30px 0",
-  };
-
-  const sectionTitle = {
-    fontSize: 20,
-    marginTop: 20,
-    marginBottom: 10,
-  };
-
-  const termItem = {
-    padding: "12px 0",
-    borderBottom: "1px solid #eee",
-  };
-
-  const editIconStyle = {
-    position: "absolute" as const,
-    top: 15,
-    right: 15,
-    cursor: "pointer",
-    fontSize: 20,
-    color: "#4a1942",
-    opacity: 0.8,
-    transition: "0.2s",
-  };
-
-
+  /*         LOAD DATA             */
   /* ============================= */
-  /*      REUSABLE COMPONENTS      */
-  /* ============================= */ 
-
-  const PrimaryButton = ({
-    label,
-    onClick,
-  }: {
-    label: string;
-    onClick: () => void;
-  }) => (
-    <button
-      onClick={onClick}
-      style={{
-        padding: "10px 20px",
-        backgroundColor: "#4a1942",
-        color: "white",
-        border: "none",
-        borderRadius: 8,
-        cursor: "pointer",
-        fontSize: 14,
-        transition: "0.2s",
-      }}
-      onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
-      onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-    >
-      {label}
-    </button>
-  );
 
   useEffect(() => {
-    // listen for firebase auth changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
       setFirebaseUser(user);
-      console.log("Firebase Auth Loaded User:", user?.uid);
     });
 
-    // load set and cards
-    const loadData = async () => {
+    const loadAll = async () => {
       if (!setId) return;
 
       try {
@@ -238,219 +99,265 @@ export default function OverviewOfCardsPage() {
 
         setSetData(setInfo);
         setCards(cardList);
+
+        // load edit fields
+        setEditTitle(setInfo.title);
+        setEditDescription(setInfo.description);
+        setEditTerms(cardList.map((c: any) => c.term));
+        setEditDefinitions(cardList.map((c: any) => c.definition));
       } catch (err) {
-        console.error(err);
         setError("Failed to load flashcard set.");
       } finally {
         setLoading(false);
       }
-
-      /** -----------------------------
-     * TEMPORARY DEBUG: Decode JWT
-     * ---------------------------- */
-      const token = localStorage.getItem("token");
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            console.log("JWT PAYLOAD:", payload);
-          } catch (err) {
-            console.log("Could not parse JWT:", err);
-          }
-        } else {
-          console.log("No token found.");
-        }
     };
 
-    loadData();
-
-    return () => unsubscribe();
+    loadAll();
+    return () => unsub();
   }, [setId]);
 
-  if (loading) {
-    return (
-      <PageContainer>
-        <p>Loading flashcards...</p>
-      </PageContainer>
-    );
-  }
+  /* ============================= */
+  /*            LOGIC              */
+  /* ============================= */
 
-  if (error) {
-    return (
-      <PageContainer>
-        <p style={{ color: "red" }}>{error}</p>
-      </PageContainer>
-    );
-  }
+  if (loading) return <p style={{ padding: 20 }}>Loading...</p>;
+  if (error) return <p style={{ padding: 20, color: "red" }}>{error}</p>;
 
   const loggedInUID = firebaseUser?.uid;
-
   const isOwner =
     loggedInUID &&
     setData?.createdByUID &&
     setData.createdByUID === loggedInUID;
 
-  console.log("Logged in user:", loggedInUID);
-  console.log("Set created by:", setData?.createdBy);
-  console.log("Is owner:", isOwner);
-  console.log("Full setData:", setData);
+  /* ============================= */
+  /*      UPDATE & DELETE          */
+  /* ============================= */
 
   const handleUpdateSet = async () => {
     try {
       const user = auth.currentUser;
       if (!user) return;
+
       const token = await user.getIdToken();
 
-      const res = await fetch(`http://localhost:5261/api/flashcardsets/${setId}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          title: editTitle,
-          description: editDescription,
-          terms: editTerms,
-          definitions: editDefinitions
-        })
-      });
+      const updatedCards = cards.map((c, i) => ({
+        id: c.id,
+        term: editTerms[i],
+        definition: editDefinitions[i],
+      }));
 
-      if (res.ok) {
-        setIsEditMode(false);
-      } else {
-        alert("Failed to update set.");
-      }
+      const res = await fetch(
+        `http://localhost:5261/api/flashcardsets/${setId}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: editTitle,
+            description: editDescription,
+            cards: updatedCards,
+          }),
+        }
+      );
+
+      if (!res.ok) return alert("Failed to update set.");
+
+      // Update UI instantly
+      setSetData((prev: any) => ({
+        ...prev,
+        title: editTitle,
+        description: editDescription,
+      }));
+
+      setCards(updatedCards);
+      setIsEditMode(false);
     } catch (err) {
       console.error(err);
     }
   };
 
+
   const handleDeleteSet = async () => {
-    const confirmed = confirm("Are you sure you want to delete this flashcard set?");
-    if (!confirmed) return;
+    if (!confirm("Delete this entire flashcard set?")) return;
 
     try {
       const user = auth.currentUser;
       if (!user) return;
+
       const token = await user.getIdToken();
 
-      const res = await fetch(`http://localhost:5261/api/flashcardsets/${setId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `http://localhost:5261/api/flashcardsets/${setId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      if (res.ok) {
-        router.push("/library");
-      } else {
-        alert("Failed to delete set.");
-      }
+      if (!res.ok) return alert("Failed to delete set.");
+      router.push("/library");
     } catch (err) {
       console.error(err);
     }
   };
 
+  /* ============================= */
+  /*            UI                 */
+  /* ============================= */
+
   return (
-    <PageContainer>
-      <div style={twoColumnWrapper}>
-        
-        {/* LEFT SIDE — SET INFORMATION */}
-        <div style={leftColumn}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              marginBottom: 10,
-            }}
-          >
-            {/* EDIT MODE TITLE INPUT */}
-            {isEditMode ? (
-              <div style={{ width: "100%" }}> 
+    <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 30,
+          marginTop: 30,
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        {/* LEFT COLUMN */}
+        <div
+          style={{
+            flex: "1 1 40%",
+            background: "#fff",
+            padding: 40,
+            borderRadius: 20,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+            minWidth: 300,
+            position: "relative",
+          }}
+        >
+          {/* EDIT MODE */}
+          {isEditMode ? (
+            <>
+              <input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: 10,
+                  border: "1px solid #ccc",
+                  borderRadius: 8,
+                  fontSize: 22,
+                  fontWeight: 600,
+                }}
+              />
 
-                {/* Title */} 
-                <input 
-                  value={editTitle} 
-                  onChange={(e) => setEditTitle(e.target.value)} 
-                  style={{ 
-                    width: "100%", 
-                    padding: "8px 12px", 
-                    fontSize: 22, 
-                    fontWeight: 600, 
-                    border: "1px solid #ccc", 
-                    borderRadius: 8, 
-                  }} 
-                  autoFocus
-                />
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                style={{
+                  width: "100%",
+                  marginTop: 12,
+                  padding: 10,
+                  borderRadius: 8,
+                  border: "1px solid #ccc",
+                  minHeight: 120,
+                  fontSize: 16,
+                }}
+              />
 
-                {/* Description */}
-                <input
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: 8,
-                    minHeight: "120px",
-                    fontSize: 16,
-                    marginTop: 12,
-                  }}
-                />
-               
-                <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
-                  <button 
-                    onClick={handleUpdateSet}
-                    style={{ 
-                      padding: "8px 14px", 
-                      background: "#4A1942", 
-                      color: "#fff", 
-                      border: "none", 
-                      borderRadius: 8, 
-                      cursor: "pointer", 
-                    }} 
-                  > 
-                    Save 
-                  </button> 
-                  
-                  <button 
-                    onClick={() => { 
-                      setIsEditMode(false); 
-                      setEditTitle(setData.title); 
-                    }} 
-                    style={{ 
-                      padding: "8px 14px", 
-                      background: "#ccc", 
-                      color: "#333", 
-                      border: "none", 
-                      borderRadius: 8, 
-                      cursor: "pointer", 
-                    }} 
-                  > 
-                    Cancel 
-                  </button> 
-                </div>
+              <div style={{ marginTop: 20 }}>
+                <h3>Edit Cards</h3>
+                {cards.map((card, i) => (
+                  <div key={card.id} style={{ marginBottom: 20 }}>
+                    <input
+                      value={editTerms[i]}
+                      onChange={(e) =>
+                        setEditTerms((prev) => {
+                          const copy = [...prev];
+                          copy[i] = e.target.value;
+                          return copy;
+                        })
+                      }
+                      placeholder="Term"
+                      style={{
+                        width: "100%",
+                        padding: 10,
+                        marginBottom: 6,
+                        border: "1px solid #ccc",
+                        borderRadius: 6,
+                      }}
+                    />
+
+                    <input
+                      value={editDefinitions[i]}
+                      onChange={(e) =>
+                        setEditDefinitions((prev) => {
+                          const copy = [...prev];
+                          copy[i] = e.target.value;
+                          return copy;
+                        })
+                      }
+                      placeholder="Definition"
+                      style={{
+                        width: "100%",
+                        padding: 10,
+                        border: "1px solid #ccc",
+                        borderRadius: 6,
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
-          ) : ( 
-            <> 
-              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
+
+
+              <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+                <button
+                  onClick={handleUpdateSet}
+                  style={{
+                    background: "#4A1942",
+                    color: "white",
+                    padding: "8px 14px",
+                    borderRadius: 8,
+                    border: "none",
+                  }}
+                >
+                  Save
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsEditMode(false);
+                    setEditTitle(setData.title);
+                    setEditDescription(setData.description);
+                  }}
+                  style={{
+                    background: "#ccc",
+                    color: "#333",
+                    padding: "8px 14px",
+                    borderRadius: 8,
+                    border: "none",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 style={{ fontSize: 28, fontWeight: 700 }}>
                 {setData.title}
-              </h1> 
-              <p style={{ color: "#555", marginBottom: 12 }}>
+              </h1>
+              <p style={{ color: "#555", marginTop: 8 }}>
                 {setData.description}
               </p>
-           
 
-              {!isEditMode && isOwner && (
-                <div style={{ position: "relative" }}>
+              {/* MENU BUTTON */}
+              {isOwner && (
+                <div style={{ position: "absolute", top: 20, right: 20 }}>
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     style={{
                       background: "transparent",
                       border: "none",
                       cursor: "pointer",
-                      padding: 6,
                     }}
                   >
-                    <MoreHorizontal size={24} color="black" />
+                    <MoreHorizontal size={24} />
                   </button>
 
                   {isMenuOpen && (
@@ -458,13 +365,11 @@ export default function OverviewOfCardsPage() {
                       style={{
                         position: "absolute",
                         right: 0,
-                        top: 30,
-                        background: "#fff",
+                        top: 35,
+                        background: "white",
                         border: "1px solid #ddd",
                         borderRadius: 10,
                         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        display: "flex",
-                        flexDirection: "column",
                         minWidth: 150,
                         zIndex: 5,
                       }}
@@ -476,9 +381,10 @@ export default function OverviewOfCardsPage() {
                         }}
                         style={{
                           padding: "10px 14px",
-                          background: "none",
                           border: "none",
+                          width: "100%",
                           textAlign: "left",
+                          background: "none",
                           cursor: "pointer",
                         }}
                       >
@@ -486,17 +392,18 @@ export default function OverviewOfCardsPage() {
                       </button>
 
                       <button
-                        onClick={() => handleDeleteSet()}
+                        onClick={handleDeleteSet}
                         style={{
                           padding: "10px 14px",
-                          background: "none",
                           border: "none",
-                          color: "red",
+                          width: "100%",
                           textAlign: "left",
+                          background: "none",
                           cursor: "pointer",
+                          color: "red",
                         }}
                       >
-                        <Trash2 size={15} />  Delete Deck
+                        <Trash2 size={15} /> Delete Deck
                       </button>
                     </div>
                   )}
@@ -504,53 +411,72 @@ export default function OverviewOfCardsPage() {
               )}
             </>
           )}
-        </div>    
 
-                  {setData.createdBy && ( 
-                    <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}> 
-                      Created by: <i>{setData.createdBy}</i> 
-                    </p>
-                  )}
+          {setData.createdBy && (
+            <p style={{ marginTop: 15, color: "#777" }}>
+              Created by: <i>{setData.createdBy}</i>
+            </p>
+          )}
 
-                  {setData.tags.length > 0 && ( 
-                    <p style={tagStyle}>{setData.tags.join(", ")}</p> 
-                  )}
+          {setData.tags.length > 0 && (
+            <p style={{ marginTop: 6, color: "#6a0dad", fontStyle: "italic" }}>
+              {setData.tags.join(", ")}
+            </p>
+          )}
 
-                  <div style={buttonGroup}> 
-                    <PrimaryButton 
-                      label="Flashcards" 
-                      onClick={() => router.push(`/flashcards/${setId}`)}
-                    />
-                    {/*<PrimaryButton 
-                      label="Multiple Choice" 
-                      onClick={() => router.push(/multipleChoice?id=${setId})}
-                    /> 
-                    <PrimaryButton 
-                      label="Quiz" 
-                      onClick={() => router.push(/quiz?id=${setId})}
-                    /> */} 
-                  </div>
+          <button
+            onClick={() => router.push(`/flashcards/${setId}`)}
+            style={{
+              marginTop: 20,
+              padding: "10px 20px",
+              background: "#4A1942",
+              color: "white",
+              border: "none",
+              borderRadius: 8,
+              cursor: "pointer",
+            }}
+          >
+            Flashcards
+          </button>
+        </div>
+
+        {/* RIGHT COLUMN – TERMS */}
+        <div
+          style={{
+            flex: "1 1 55%",
+            background: "#fff",
+            padding: 40,
+            borderRadius: 20,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+            minWidth: 350,
+          }}
+        >
+          <h2 style={{ fontSize: 20, marginBottom: 10 }}>
+            Terms & Definitions
+          </h2>
+
+          {cards.length === 0 ? (
+            <p style={{ color: "#999" }}>No cards available.</p>
+          ) : (
+            <div>
+              {cards.map((card) => (
+                <div
+                  key={card.id}
+                  style={{
+                    padding: "12px 0",
+                    borderBottom: "1px solid #eee",
+                  }}
+                >
+                  <strong style={{ fontSize: 16 }}>{card.term}</strong>
+                  <p style={{ marginTop: 5, color: "#444" }}>
+                    {card.definition}
+                  </p>
                 </div>
-              
-
-                {/* RIGHT SIDE — TERMS & DEFINITIONS */}
-                <div style={rightColumn}>
-                  <h2 style={sectionTitle}>Terms & Definitions</h2>
-
-                  {cards.length === 0 ? (
-                    <p style={{ color: "#999" }}>No cards available.</p>
-                  ) : (
-                    <div style={{ marginTop: 10 }}>
-                      {cards.map((card) => (
-                        <div key={card.id} style={termItem}>
-                          <strong style={{ fontSize: 16 }}>{card.term}</strong>
-                          <p style={{ marginTop: 5, color: "#444" }}>{card.definition}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </PageContainer>
-          );
-        }
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

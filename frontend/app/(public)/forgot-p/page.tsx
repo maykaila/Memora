@@ -1,25 +1,28 @@
-"use client"; // Required for hooks and event handlers
+"use client"; 
 
 import { useState } from 'react';
-import { auth, sendPasswordResetEmail } from '../../../initializeFirebase'; // Check path
+import { auth, sendPasswordResetEmail } from '../../../initializeFirebase'; 
+import { validateEmail } from '../../../services/validation';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState<string | null>(null); // For success
-  const [error, setError] = useState<string | null>(null);     // For errors
+  const [message, setMessage] = useState<string | null>(null); 
+  const [error, setError] = useState<string | null>(null);     
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
 
-    if (!email) {
-      setError("Please enter your email.");
+    // --- VALIDATION START ---
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
       return;
     }
+    // --- VALIDATION END ---
 
     try {
-      // Use the function we just exported
       await sendPasswordResetEmail(auth, email);
       setMessage("Password reset email sent! Check your inbox.");
     } catch (firebaseError: any) {
@@ -37,11 +40,10 @@ export default function ForgotPasswordPage() {
       <form className="auth-container" onSubmit={handleResetPassword}>
         <h2>Forgot Password</h2>
         
-        {/* Show success or error messages */}
         {message && <p style={{ color: 'green' }}>{message}</p>}
         {error && <p style={{ color: 'red' }}>{error}</p>}
         
-        {!message && ( // Hide input after success if you want
+        {!message && ( 
           <>
             <input
               type="email"

@@ -16,6 +16,8 @@ import {
 // needed for flashcards
 import { getFirestore } from "firebase/firestore";
 
+export const API_BASE_URL = "http://localhost:5261";
+
 // Your web app's Firebase configuration (remains the same)
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -50,5 +52,6 @@ export {
   signInWithEmailAndPassword, 
   sendPasswordResetEmail,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  API_BASE_URL
 };

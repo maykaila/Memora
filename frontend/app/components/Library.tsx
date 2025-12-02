@@ -8,7 +8,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Link from "next/link"; 
 
 import {
-  MoreVertical, Edit, Trash2, BookOpen, Clock, Search, Filter, Plus, Loader2, Calendar, FolderPlus, Folder
+  MoreVertical, Edit, Trash2, BookOpen, Clock, Search, Filter, Plus, Loader2, Calendar, FolderPlus, Folder, Layers
 } from "lucide-react";
 
 import AddToFolderModal from "./AddToFolderModal";
@@ -21,6 +21,7 @@ type LibrarySet = {
   formattedDate: string;
   daysAgo: number;
   category: string;
+  cardCount: number;
 };
 
 type LibraryFolder = {
@@ -86,6 +87,9 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
           title: item.Title || item.title || "Untitled Set", 
           formattedDate: formatDate(item.DateCreated || item.dateCreated),
           daysAgo: calculateDaysAgo(item.DateCreated || item.dateCreated),
+
+          cardCount: item.Flashcards ? item.Flashcards.length : (item.flashcards ? item.flashcards.length : 0),
+          
           category: (item.TagIds && item.TagIds.length > 0) 
             ? item.TagIds[0] 
             : (item.tagIds && item.tagIds.length > 0) 
@@ -328,12 +332,14 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                       </span>
                       <span>|</span>
                       <span className="lib-card-time-meta">
-                        <Clock size={12} /> {set.daysAgo} days ago
-                      </span>
+                    <Clock size={12} /> 
+                    {/* Check if it is exactly 1 */}
+                    {set.daysAgo} {set.daysAgo === 1 ? "day" : "days"} ago
+                  </span>
                       <span>|</span>
-                      <span className="lib-card-category-pill">
+                      {/* <span className="lib-card-category-pill">
                         {set.category}
-                      </span>
+                      </span> */}
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 .page {
   background: #f2d7ee;
-  min-height: calc(100vh - 140px); /* account for navbar/footer */
+  min-height: calc(100vh - 140px);
   padding: 2rem 1.5rem 3rem;
 }
 
@@ -20,7 +20,7 @@
 }
 
 .panel {
-  background: #e1b7ff;
+  background: #fff;
   border-radius: 18px;
   padding: 1rem 1.1rem 1.2rem;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
@@ -44,9 +44,9 @@
   width: 90%;
   border: none;
   border-radius: 10px;
-  padding: 0.6rem 0.7rem;
-  margin-bottom: 0.6rem;
-  background: #f0c9ff;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.7rem;
+  background: #f7e8ff;
   font-size: 0.9rem;
   outline: none;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
@@ -66,11 +66,14 @@
   color: #6b4b6a;
 }
 
-.accessBox {
-  margin-top: 0.4rem;
-  padding: 0.7rem;
-  border-radius: 12px;
-  background: #f0c9ff;
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
 }
 
 /* RIGHT COLUMN */
@@ -87,20 +90,33 @@
   gap: 0.6rem;
 }
 
-.iconCircle {
-  width: 32px;
-  height: 32px;
+/* Move Button */
+.moveBtn {
+  padding: 0.55rem 1.2rem;
   border-radius: 999px;
+  border: 1px solid #4a1942;
   background: #4a1942;
-  color: #f7ffe0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: white;
+  font-weight: 600;
   font-size: 0.9rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.moveBtn:hover {
+  background: #6a2360;
+  transform: translateY(-1px);
+}
+
+.activeMove {
+  background: white;
+  color: #4a1942;
 }
 
 .addButton {
+  display: flex;
+  align-items: center;
   padding: 0.55rem 1.4rem;
   border-radius: 999px;
   border: none;
@@ -126,69 +142,137 @@
 }
 
 .card {
-  background: #e1b7ff;
+  background: #fff;
   border-radius: 18px;
-  padding: 0.75rem 0.9rem 0.9rem;
+  padding: 1rem 1.2rem;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s;
+  cursor: default;
+}
+
+.card[draggable="true"] {
+  cursor: move; 
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+  transform: scale(1.01);
+  z-index: 10;
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.indexWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .cardIndex {
-  font-weight: 600;
+  font-weight: 700;
   color: #3a1033;
+  font-size: 1.1rem;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
 }
 
 .cardIcons {
   display: flex;
   gap: 0.4rem;
+  align-items: center;
 }
 
 .iconBtn {
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 0.85rem;
-  color: #3a1033;
-  padding: 0;
+  color: #888;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
+.iconBtn:hover {
+  background: #f5f5f5;
+  color: #4a1942;
+}
+
+.deleteBtn:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+/* Card Inputs Layout */
 .cardBody {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem 0.5rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; /* Gap between Term and Definition columns */
+  align-items: start;
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.4rem; /* Gap between Input and Label */
 }
 
+/* Updated for Textarea support */
 .smallInput {
-  width: 95%;
-  padding: 0.45rem 0.55rem;
-  border-radius: 8px;
-  border: none;
-  background: #f0c9ff;
-  font-size: 0.85rem;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: #f7e8ff;
+  font-size: 0.95rem;
   outline: none;
+  transition: border 0.2s;
+  
+  /* Textarea specific */
+  resize: none; /* Hide manual drag handle */
+  overflow: hidden; /* Hide scrollbar for smooth auto-grow */
+  min-height: 2.8rem; /* Consistent starting height */
+  font-family: inherit; /* Ensure font matches inputs */
+  line-height: 1.5;
 }
 
-.smallInput::placeholder {
-  color: #7a5585;
+.smallInput:focus {
+  background: #fff;
+  border-color: #d8b4e2;
+  box-shadow: 0 0 0 3px rgba(74, 25, 66, 0.05);
+}
+
+.smallInput:disabled {
+  background: #f5f5f5;
+  color: #888;
+  cursor: not-allowed;
 }
 
 .fieldLabel {
-  font-size: 0.7rem;
-  color: #3a1033;
-  font-weight: 600;
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
 }
 
 /* Actions row */
@@ -196,17 +280,18 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .secondaryAction,
 .primaryAction {
-  padding: 0.45rem 1.1rem;
+  padding: 0.6rem 1.5rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
+  transition: transform 0.1s;
 }
 
 .secondaryAction {
@@ -215,15 +300,24 @@
   border: 1px solid #4a1942;
 }
 
+.secondaryAction:hover {
+  background: rgba(74, 25, 66, 0.05);
+}
+
 .primaryAction {
   background: #4a1942;
   color: #f7ffe0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
 }
 
-.primaryAction:hover {
+.primaryAction:hover:not(:disabled) {
   background: #6a2360;
   transform: translateY(-1px);
+}
+
+.primaryAction:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Responsive */
@@ -231,7 +325,10 @@
   .layout {
     grid-template-columns: 1fr;
   }
-
+  .cardBody {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
   .page {
     padding-top: 1.5rem;
   }

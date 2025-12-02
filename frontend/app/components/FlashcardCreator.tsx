@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import styles from "./createFlashcard.module.css";
-// Adjust this path to wherever your firebase init file is relative to components/shared
 import { auth } from "../../initializeFirebase"; 
 import { useRouter } from "next/navigation";
-import { Globe, Lock } from "lucide-react"; 
+import { Globe, Lock, Trash2, Plus } from "lucide-react"; 
 
 interface Card {
   id: number;
@@ -17,37 +16,79 @@ interface FlashcardCreatorProps {
   role: "student" | "teacher";
 }
 
+const DragIndicatorIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style={{ color: '#9ca3af', cursor: 'grab' }}>
+    <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+  </svg>
+);
+
 export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false); 
- 
+  const [isReordering, setIsReordering] = useState(false); 
+
   const [cards, setCards] = useState<Card[]>([
-  { id: 1, term: "", definition: "" },
-  { id: 2, term: "", definition: "" },
+    { id: 1, term: "", definition: "" },
+    { id: 2, term: "", definition: "" },
   ]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
+  const [dragEnabled, setDragEnabled] = useState(false); 
+
   const router = useRouter();
+
+  // --- Auto Resize Textarea ---
+  const autoResize = (e: any) => {
+    e.target.style.height = 'auto'; 
+    e.target.style.height = e.target.scrollHeight + 'px';
+  };
 
   const addCard = () => {
     setCards((prev) => [
-    ...prev,
-    { id: prev.length ? prev[prev.length - 1].id + 1 : 1, term: "", definition: "" },
+      ...prev,
+      { id: prev.length > 0 ? Math.max(...prev.map(c => c.id)) + 1 : 1, term: "", definition: "" },
     ]);
   };
 
   const updateCard = (id: number, field: "term" | "definition", value: string) => {
     setCards((prev) =>
-    prev.map((card) =>
-    card.id === id ? { ...card, [field]: value } : card
-    )
+      prev.map((card) =>
+        card.id === id ? { ...card, [field]: value } : card
+      )
     );
   };
 
   const removeCard = (id: number) => {
     setCards((prev) => prev.filter((card) => card.id !== id));
+  };
+
+  // --- Drag Functions ---
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, position: number) => {
+    dragItem.current = position;
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>, position: number) => {
+    dragOverItem.current = position;
+    e.preventDefault(); 
+  };
+
+  const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (dragItem.current !== null && dragOverItem.current !== null) {
+      const copyListItems = [...cards];
+      const dragItemContent = copyListItems[dragItem.current];
+      copyListItems.splice(dragItem.current, 1);
+      copyListItems.splice(dragOverItem.current, 0, dragItemContent);
+      dragItem.current = null;
+      dragOverItem.current = null;
+      setCards(copyListItems);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -92,51 +133,43 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
 
     try {
       const response = await fetch('http://localhost:5261/api/flashcardsets', {
-      method: 'POST',
-      headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${idToken}`,
-    },
-      body: body,
-    });
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`,
+        },
+        body: body,
+      });
 
-    if (!response.ok) {
-      let errorMessage = "Failed to save deck.";
-      try {
-        // Attempt to read the detailed error message from the backend response body
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorMessage;
-      } catch (jsonError) {
-        // If the response isn't JSON, use the status text
-        console.error("Could not parse error response", jsonError);
-        errorMessage = `${response.status}: ${response.statusText}`;
+      if (!response.ok) {
+        let errorMessage = "Failed to save deck.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonError) {
+          console.error("Could not parse error response", jsonError);
+          errorMessage = `${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
-      throw new Error(errorMessage);
-    }
 
-    // alert("Deck saved successfully!");
-  
-  // ROUTING LOGIC BASED ON ROLE
-    if (role === "teacher") {
-      router.push('/teacher-dashboard');
-    } else {
-      router.push('/dashboard');
-    }
+      if (role === "teacher") {
+        router.push('/teacher-dashboard');
+      } else {
+        router.push('/dashboard');
+      }
 
     } catch (err: any) {
-    setError(err.message);
-        // Added alert for immediate feedback on the detailed error
-    // alert(`Error saving deck: ${err.message}`); 
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
- };
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className={styles.page}>
       <form className={styles.layout} onSubmit={handleSave}>
-        {/* LEFT SIDE */}
         <section className={styles.leftColumn}>
           <div className={styles.panel}>
             <h2 className={styles.sectionTitle}>
@@ -163,24 +196,8 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
             </p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
-              <label 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  backgroundColor: !isPublic ? 'rgba(0,0,0,0.05)' : 'transparent',
-                  border: !isPublic ? '1px solid #666' : '1px solid transparent'
-                }}
-              >
-                <input 
-                  type="radio" 
-                  name="visibility" 
-                  checked={!isPublic} 
-                  onChange={() => setIsPublic(false)} 
-                />
+              <label className={styles.radioLabel} style={{ borderColor: !isPublic ? '#666' : 'transparent', backgroundColor: !isPublic ? '#f7e8ff' : 'transparent' }}>
+                <input type="radio" name="visibility" checked={!isPublic} onChange={() => setIsPublic(false)} />
                 <Lock size={18} />
                 <div>
                   <span style={{display: 'block', fontWeight: 600}}>Private</span>
@@ -188,24 +205,8 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
                 </div>
               </label>
 
-              <label 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  backgroundColor: isPublic ? 'rgba(0,0,0,0.05)' : 'transparent',
-                  border: isPublic ? '1px solid #666' : '1px solid transparent'
-                }}
-              >
-                <input 
-                  type="radio" 
-                  name="visibility" 
-                  checked={isPublic} 
-                  onChange={() => setIsPublic(true)} 
-                />
+              <label className={styles.radioLabel} style={{ borderColor: isPublic ? '#666' : 'transparent', backgroundColor: isPublic ? '#f7e8ff' : 'transparent' }}>
+                <input type="radio" name="visibility" checked={isPublic} onChange={() => setIsPublic(true)} />
                 <Globe size={18} />
                 <div>
                   <span style={{display: 'block', fontWeight: 600}}>Public Library</span>
@@ -218,47 +219,88 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
         </section>
 
         <section className={styles.rightColumn}>
+          
           <div className={styles.toolbar}>
-            <div className={styles.iconCircle}>≡</div>
-            <div className={styles.iconCircle}>⇄</div>
+            <button 
+                type="button" 
+                className={`${styles.moveBtn} ${isReordering ? styles.activeMove : ''}`}
+                onClick={() => setIsReordering(!isReordering)}
+            >
+                Move
+            </button>
+
             <button type="button" className={styles.addButton} onClick={addCard}>
-              Add a card
+              <Plus size={16} style={{ marginRight: '5px' }}/> Add a card
             </button>
           </div>
 
           <div className={styles.cardsList}>
             {cards.map((card, index) => (
-              <div key={card.id} className={styles.card}>
+              <div 
+                key={card.id} 
+                className={styles.card}
+                draggable={isReordering && dragEnabled}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragEnter={(e) => handleDragEnter(e, index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => e.preventDefault()}
+              >
                 <div className={styles.cardHeader}>
-                  <span className={styles.cardIndex}>{index + 1}</span>
+                  <div className={styles.indexWrapper}>
+                    <span className={styles.cardIndex}>{index + 1}</span>
+                    {isReordering && (
+                        <div 
+                            className={styles.dragHandle}
+                            onMouseEnter={() => setDragEnabled(true)}
+                            onMouseLeave={() => setDragEnabled(false)}
+                        >
+                            <DragIndicatorIcon />
+                        </div>
+                    )}
+                  </div>
+                  
                   <div className={styles.cardIcons}>
-                    <button
-                      type="button"
-                      className={styles.iconBtn}
-                      onClick={() => removeCard(card.id)}
-                      aria-label="Delete card"
-                    >
-                      🗑
-                    </button>
+                    {!isReordering && (
+                        <button
+                            type="button"
+                            className={`${styles.iconBtn} ${styles.deleteBtn}`}
+                            onClick={() => removeCard(card.id)}
+                            aria-label="Delete card"
+                        >
+                            <Trash2 size={18} />
+                        </button>
+                    )}
                   </div>
                 </div>
 
                 <div className={styles.cardBody}>
                   <div className={styles.fieldGroup}>
-                    <input
+                    {/* CHANGED TO TEXTAREA FOR AUTO-GROW */}
+                    <textarea
                       className={styles.smallInput}
                       placeholder="Enter term"
                       value={card.term}
-                      onChange={(e) => updateCard(card.id, "term", e.target.value)}
+                      onChange={(e) => {
+                        updateCard(card.id, "term", e.target.value);
+                        autoResize(e); // Trigger auto-resize
+                      }}
+                      disabled={isReordering}
+                      rows={1} // Start small
                     />
                     <span className={styles.fieldLabel}>Term</span>
                   </div>
                   <div className={styles.fieldGroup}>
-                    <input
+                    {/* CHANGED TO TEXTAREA FOR AUTO-GROW */}
+                    <textarea
                       className={styles.smallInput}
                       placeholder="Enter definition"
                       value={card.definition}
-                      onChange={(e) => updateCard(card.id, "definition", e.target.value)}
+                      onChange={(e) => {
+                        updateCard(card.id, "definition", e.target.value);
+                        autoResize(e); // Trigger auto-resize
+                      }}
+                      disabled={isReordering}
+                      rows={1}
                     />
                     <span className={styles.fieldLabel}>Definition</span>
                   </div>

@@ -1,4 +1,5 @@
 import styles from "./headerFooter.module.css";
+import '../globals.css'
 
 export default function Footer() {
   return (

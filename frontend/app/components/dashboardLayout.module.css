@@ -52,16 +52,16 @@
   gap: 1rem;
   padding: 1rem 1.2rem;
   border-radius: 18px;
-  background: #e1b7ff; /* Very light pink/white for Recents/Folders */
+  background: #fff; /* Very light pink/white for Recents/Folders */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-decoration: none;
   color: inherit;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
 }
 
 .standardCard:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(74, 25, 66, 0.08);
   border-color: #e1b7ff;
 }
@@ -103,7 +103,7 @@
 }
 
 .exploreCard {
-  background: #e1b7ff; /* THE LILAC PURPLE COLOR from your design */
+  background: #fff; /* THE LILAC PURPLE COLOR from your design */
   border-radius: 20px;
   padding: 1.5rem;
   min-height: 80px;
@@ -112,13 +112,15 @@
   justify-content: center;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
 }
 
 .exploreCard:hover {
   transform: translateY(-3px);
-  filter: brightness(1.02);
+  box-shadow: 0 8px 20px rgba(74, 25, 66, 0.08);
+  border-color: #e1b7ff;
 }
 
 .exploreTitle {

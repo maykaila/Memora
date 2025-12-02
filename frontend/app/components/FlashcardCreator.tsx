@@ -75,17 +75,17 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
     const idToken = await user.getIdToken();
 
     const cardData = validCards.map(card => ({
-      Term: card.term,
-      Definition: card.definition,
+      term: card.term,
+      definition: card.definition,
     }));
 
     const body = JSON.stringify({
-      Title: title,
-      Description: description,
-      Visibility: isPublic, 
-      Cards: cardData,
+      title: title,
+      description: description,
+      visibility: isPublic, 
+      cards: cardData,
       // We can optionally send the role to the backend if needed
-      CreatedByRole: role 
+      createdByRole: role 
     });
 
     try {
@@ -112,7 +112,7 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
       throw new Error(errorMessage);
     }
 
-    alert("Deck saved successfully!");
+    // alert("Deck saved successfully!");
   
   // ROUTING LOGIC BASED ON ROLE
     if (role === "teacher") {
@@ -124,7 +124,7 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
     } catch (err: any) {
     setError(err.message);
         // Added alert for immediate feedback on the detailed error
-    alert(`Error saving deck: ${err.message}`); 
+    // alert(`Error saving deck: ${err.message}`); 
         console.error(err);
       } finally {
         setIsLoading(false);

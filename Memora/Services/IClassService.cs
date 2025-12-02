@@ -19,5 +19,7 @@ namespace Memora.Services
         Task<bool> AssignDeckToClassAsync(string classId, string deckId);
         Task<bool> UpdateClassAsync(string classId, string newName);
         Task<bool> DeleteClassAsync(string classId);
+        Task<string> GetUserNameByIdAsync(string userId);
+        Task<bool> LeaveClassAsync(string studentId, string classId);
     }
 }

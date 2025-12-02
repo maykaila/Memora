@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../../initializeFirebase";
-import { BookOpen, Globe, Lock, Folder, GraduationCap } from "lucide-react"; 
+import { BookOpen, Globe, Lock, Folder, GraduationCap, ChevronLeft, ChevronRight } from "lucide-react"; 
 import Link from "next/link"; 
 import styles from "../../components/dashboardLayout.module.css"; 
 // IMPORT YOUR EXISTING COMPONENT (Now acting as a modal)
@@ -17,6 +17,7 @@ interface FlashcardSet {
   description: string | null;
   visibility: boolean | string; 
   dateCreated: string;
+  createdBy?: string;
 }
 
 interface FolderItem {
@@ -34,6 +35,15 @@ export default function StudentDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false); 
+  
+  // PAGINATION STATE FOR EXPLORE
+  const [exploreOffset, setExploreOffset] = useState(0);
+  const EXPLORE_PAGE_SIZE = 12; // Approx 3 rows (assuming 4 cards per row)
+  
+  // LIMITS FOR OTHER SECTIONS
+  const RECENTS_LIMIT = 8; // Approx 2 rows
+  const FOLDERS_LIMIT = 8; // Approx 2 rows
+
   const router = useRouter();
 
   const fetchFoldersData = useCallback(async (user: any) => {
@@ -100,8 +110,23 @@ export default function StudentDashboard() {
     });
   };
 
+  // --- HANDLERS FOR PAGINATION ---
+  const handleNextExplore = () => {
+    if (exploreOffset + EXPLORE_PAGE_SIZE < publicSets.length) {
+      setExploreOffset(prev => prev + EXPLORE_PAGE_SIZE);
+    }
+  };
+
+  const handlePrevExplore = () => {
+    if (exploreOffset > 0) {
+      setExploreOffset(prev => Math.max(0, prev - EXPLORE_PAGE_SIZE));
+    }
+  };
+
   const renderRecents = () => {
-    const recentSets = mySets.slice(0, 6);
+    // Slice to limit to ~2 rows
+    const recentSets = mySets.slice(0, RECENTS_LIMIT);
+    
     if (recentSets.length === 0) return <div className={styles.emptyText}>You don&apos;t have any recent decks yet.</div>;
     return (
       <div className={styles.recentsGrid}>
@@ -116,6 +141,13 @@ export default function StudentDashboard() {
                 {(set.visibility === true || String(set.visibility).toLowerCase() === "public") ? <Globe size={12}/> : <Lock size={12}/>} 
                 <span style={{marginLeft: '4px'}}>{formatDate(set.dateCreated)}</span>
               </div>
+
+              {set.createdBy && (
+                <p style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+                  Created by: <i>{set.createdBy}</i>
+                </p>
+              )}
+
             </div>
           </Link>
         ))}
@@ -138,15 +170,16 @@ export default function StudentDashboard() {
         );
     }
 
+    // Slice to limit to ~2 rows
+    const visibleFolders = folders.slice(0, FOLDERS_LIMIT);
+
     return (
       <div className={styles.recentsGrid}>
-        {folders.map((folder) => (
-          /* CHANGED: Wrapped in Link to navigate to folder details */
+        {visibleFolders.map((folder) => (
           <Link href={`/folder/${folder.folderId}`} key={folder.folderId} className={styles.standardCard}>
             <div 
                 className={styles.iconBox} 
                 style={{ 
-                    // Kept logic in case old data has colors, but defaults to blue
                     backgroundColor: folder.color || folder.Color || '#e0f2fe', 
                     color: '#4a1942' 
                 }}
@@ -165,12 +198,21 @@ export default function StudentDashboard() {
 
   const renderExplore = () => {
     if (publicSets.length === 0) return <div className={styles.emptyText}>No public decks found.</div>;
+    
+    // PAGINATION LOGIC
+    const visibleSets = publicSets.slice(exploreOffset, exploreOffset + EXPLORE_PAGE_SIZE);
+
     return (
       <div className={styles.exploreGrid}>
-        {publicSets.map((set) => (
+        {visibleSets.map((set) => (
           <Link href={`/overviewOfCards?id=${set.setId}`} key={set.setId} className={styles.exploreCard}>
             <div className={styles.exploreTitle}>{set.title}</div>
             <div className={styles.exploreMeta}>Public Deck • {formatDate(set.dateCreated)}</div>
+            {set.createdBy && (
+            <p className={styles.exploreMeta} style={{ marginTop: "4px" }}>
+              Created by: <i>{set.createdBy}</i>
+            </p>
+          )}
           </Link>
         ))}
       </div>
@@ -181,7 +223,6 @@ export default function StudentDashboard() {
     <div className={styles.dashboardContent}>
       {error && <p className={styles.emptyText} style={{ color: 'red' }}>Error: {error}</p>}
 
-      {/* USE EXISTING FOLDER CREATOR AS MODAL */}
       <FolderCreator 
         isOpen={isFolderModalOpen} 
         onClose={() => setIsFolderModalOpen(false)} 
@@ -198,7 +239,6 @@ export default function StudentDashboard() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Recents</h2>
-            {/* <Link href="/create" className={styles.actionLink}>+ New Deck</Link> */}
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderRecents()}
       </section>
@@ -206,19 +246,57 @@ export default function StudentDashboard() {
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Folders</h2>
-            {/* <button 
-              onClick={() => setIsFolderModalOpen(true)} 
-              className={styles.actionLink}
-              style={{background:'transparent', border:'none', cursor:'pointer'}}
-            >
-              + New Folder
-            </button> */}
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderFolders()}
       </section>
 
       <section className={styles.dashboardSection}>
-        <h2 className={styles.sectionTitle}>Explore</h2>
+        {/* EXPLORE HEADER WITH PAGINATION ARROWS */}
+        <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 className={styles.sectionTitle}>Explore</h2>
+            
+            {/* Arrows only show if there are enough items to paginate */}
+            {publicSets.length > EXPLORE_PAGE_SIZE && (
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={handlePrevExplore} 
+                  disabled={exploreOffset === 0}
+                  style={{
+                    background: exploreOffset === 0 ? '#eee' : 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: exploreOffset === 0 ? 'default' : 'pointer',
+                    color: exploreOffset === 0 ? '#ccc' : '#4a1942'
+                  }}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button 
+                  onClick={handleNextExplore} 
+                  disabled={exploreOffset + EXPLORE_PAGE_SIZE >= publicSets.length}
+                  style={{
+                    background: exploreOffset + EXPLORE_PAGE_SIZE >= publicSets.length ? '#eee' : 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: exploreOffset + EXPLORE_PAGE_SIZE >= publicSets.length ? 'default' : 'pointer',
+                    color: exploreOffset + EXPLORE_PAGE_SIZE >= publicSets.length ? '#ccc' : '#4a1942'
+                  }}
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            )}
+        </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderExplore()}
       </section>
     </div>

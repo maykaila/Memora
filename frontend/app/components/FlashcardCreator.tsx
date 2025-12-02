@@ -85,7 +85,9 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
       visibility: isPublic, 
       cards: cardData,
       // We can optionally send the role to the backend if needed
-      createdByRole: role 
+      createdByRole: role,
+      createdByUID: user.uid,
+      createdBy: user.email?.split("@")[0]
     });
 
     try {

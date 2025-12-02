@@ -167,6 +167,36 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     }
   };
 
+  // Remove Student
+  const handleRemoveStudent = async (studentUid: string) => {
+    if (!confirm("Are you sure you want to remove this student?")) return;
+
+    try {
+        const user = auth.currentUser;
+        if (!user) return;
+        const token = await user.getIdToken();
+
+        const res = await fetch(`http://localhost:5261/api/classes/${classId}/students/${studentUid}`, {
+            method: 'DELETE',
+            headers: { 
+                Authorization: `Bearer ${token}` 
+            }
+        });
+
+        if (res.ok) {
+            // Optimistically update UI (remove from list immediately)
+            setStudents(prev => prev.filter(s => s.uid !== studentUid));
+            // Trigger refresh to ensure counts update
+            handleRefresh();
+        } else {
+            alert("Failed to remove student.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error removing student.");
+    }
+  };
+
   // --- UPDATED COPY LOGIC ---
   const copyCode = () => {
     if (classData?.classCode) {
@@ -318,7 +348,11 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
                   <span className={styles.studentName}>{student.username || "Unknown Student"}</span>
                   <span className={styles.studentEmail}>{student.email}</span>
                 </div>
-                <button className={styles.removeBtn} title="Remove Student">
+                <button 
+                    className={styles.removeBtn} 
+                    title="Remove Student"
+                    onClick={() => handleRemoveStudent(student.uid)}
+                >
                   Remove
                 </button>
               </div>

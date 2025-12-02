@@ -201,5 +201,19 @@ namespace Memora.Services
 
             return true;
         }
+
+        //Remove Student
+        public async Task<bool> RemoveStudentFromClassAsync(string classId, string studentId)
+        {
+            DocumentReference docRef = _classesCollection.Document(classId);
+            DocumentSnapshot snap = await docRef.GetSnapshotAsync();
+
+            if (!snap.Exists) return false;
+
+            // Remove the specific studentId from the array
+            await docRef.UpdateAsync("student_ids", FieldValue.ArrayRemove(studentId));
+
+            return true;
+        }
     }
 }

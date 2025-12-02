@@ -291,5 +291,36 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        // Remove Student
+        // ... inside ClassesController class ...
+
+        // 10. Remove Student from Class (Teacher Action)
+        [HttpDelete("{classId}/students/{studentId}")]
+        public async Task<IActionResult> RemoveStudent(string classId, string studentId)
+        {
+            try
+            {
+                string? userId = await GetUserIdFromTokenAsync(); // Teacher's ID
+                if (userId == null) return Unauthorized();
+
+                // (Optional) You could check here if userId is the owner of the class
+                
+                bool success = await _classService.RemoveStudentFromClassAsync(classId, studentId);
+
+                if (success)
+                {
+                    return Ok(new { message = "Student removed successfully" });
+                }
+                else
+                {
+                    return NotFound(new { message = "Class not found" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

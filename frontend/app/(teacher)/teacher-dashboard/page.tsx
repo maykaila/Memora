@@ -238,7 +238,7 @@ export default function TeacherDashboard() {
     return (
       <div className={styles.recentsGrid}>
         {recentSets.map((set) => (
-          <Link href={`/overviewOfCards?id=${set.setId}`} key={set.setId} className={styles.standardCard}>
+          <Link href={`/teacher-cardOverview?id=${set.setId}`} key={set.setId} className={styles.standardCard}>
             <div className={`${styles.iconBox} ${styles.iconPurple}`}>
               <BookOpen size={20} />
             </div>
@@ -279,13 +279,6 @@ export default function TeacherDashboard() {
 
       <section className={styles.dashboardSection}>
         <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Active Classes</h2>
-        </div>
-        {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderClasses()}
-      </section>
-
-      <section className={styles.dashboardSection}>
-        <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>My Folders</h2>
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderFolders()}
@@ -296,6 +289,13 @@ export default function TeacherDashboard() {
             <h2 className={styles.sectionTitle}>Recent Decks</h2>
         </div>
         {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderRecents()}
+      </section>
+
+      <section className={styles.dashboardSection}>
+        <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Active Classes</h2>
+        </div>
+        {isLoading ? <p className={styles.emptyText}>Loading...</p> : renderClasses()}
       </section>
 
     </div>

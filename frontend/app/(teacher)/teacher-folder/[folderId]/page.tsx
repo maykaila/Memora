@@ -134,9 +134,9 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
   return (
     <div className={styles.container}>
       
-      <button onClick={() => router.push('/teacher-dashboard')} className={styles.backBtn}>
+      {/* <button onClick={() => router.push('/teacher-dashboard')} className={styles.backBtn}>
         <ArrowLeft size={18} /> Back to Dashboard
-      </button>
+      </button> */}
 
       <div className={styles.headerCard}>
         <div className={styles.iconContainer} style={{ background: '#e0f2fe', color: '#0284c7' }}>

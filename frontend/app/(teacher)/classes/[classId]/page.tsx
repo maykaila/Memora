@@ -10,7 +10,7 @@ import styles from "./classDetails.module.css";
 import AssignDeckModal from "../../../components/teacher/assignDeckModal";
 import ClassSettingsModal from "../../../components/teacher/classSettingsModal";
 
-// Interfaces matching your Frontend usage
+// ... [Interfaces remain the same] ...
 interface Student {
   uid: string;
   username: string;
@@ -44,9 +44,11 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
   const [error, setError] = useState<string | null>(null);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  
-  // 2. Add Modal State
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+
+  // --- NEW STATE FOR COPIED FEEDBACK ---
+  const [copied, setCopied] = useState(false); 
+  // -------------------------------------
 
   const router = useRouter();
 
@@ -56,7 +58,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     });
   }, [params]);
 
-  // 3. Refactor fetching into a reusable function so we can refresh after assigning
+  // ... [fetchClassData function remains the same] ...
   const fetchClassData = useCallback(async (user: any, currentClassId: string) => {
     const idToken = await user.getIdToken();
     const headers = { 
@@ -126,7 +128,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     }
   }, []);
 
-  // Initial Load
+  // ... [useEffect hooks remain the same] ...
   useEffect(() => {
     if (!classId) return;
 
@@ -148,32 +150,32 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     return () => unsubscribe();
   }, [classId, router, fetchClassData]);
 
-  // --- NEW: REAL-TIME POLLING ---
   useEffect(() => {
     if (!classId) return;
     const interval = setInterval(() => {
         if (auth.currentUser) {
             fetchClassData(auth.currentUser, classId);
         }
-    }, 4000); // Poll every 4 seconds
+    }, 4000); 
 
     return () => clearInterval(interval);
   }, [classId, fetchClassData]);
-  // ------------------------------
-  
-  // 4. Refresh Handler passed to modal
+
   const handleRefresh = async () => {
     if (auth.currentUser && classId) {
         await fetchClassData(auth.currentUser, classId);
     }
   };
 
+  // --- UPDATED COPY LOGIC ---
   const copyCode = () => {
     if (classData?.classCode) {
       navigator.clipboard.writeText(classData.classCode);
-      // alert("Class code copied!");
+      setCopied(true); // Show message
+      setTimeout(() => setCopied(false), 2000); // Hide message after 2 seconds
     }
   };
+  // --------------------------
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -189,7 +191,6 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
   return (
     <div className={styles.container}>
       
-      {/* 5. Render Modal */}
       <AssignDeckModal 
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
@@ -209,13 +210,36 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
         <div>
           <h1 className={styles.title}>{classData.className}</h1>
           <div className={styles.subtitle}>
-            <span 
-              className={styles.codeBadge} 
-              onClick={copyCode}
-              title="Click to Copy"
-            >
-              Code: {classData.classCode} <Copy size={14} />
-            </span>
+            
+            {/* --- UPDATED BADGE WITH MESSAGE --- */}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+                <span 
+                className={styles.codeBadge} 
+                onClick={copyCode}
+                title="Click to Copy"
+                >
+                    Code: {classData.classCode} <Copy size={14} />
+                </span>
+                
+                {copied && (
+                    <div style={{ 
+                        position: 'absolute', 
+                        top: '100%', 
+                        left: '50%', 
+                        transform: 'translateX(-50%)', // Centers it relative to badge
+                        marginTop: '4px',
+                        color: '#22c55e', // Green color
+                        fontSize: '0.75rem', 
+                        fontWeight: '600',
+                        whiteSpace: 'nowrap',
+                        pointerEvents: 'none' // Ensures clicks go through if needed
+                    }}>
+                        Copied!
+                    </div>
+                )}
+            </div>
+            {/* ---------------------------------- */}
+
             <span>|</span>
             <span>{studentCount} Students</span>
             <span>|</span>
@@ -224,13 +248,6 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
         </div>
         
         <div className={styles.headerActions}>
-          {/* <button 
-            className={styles.primaryBtn} 
-            style={{background: '#4a1942', color: '#ffffffff', border: '1px solid #eee'}}
-            onClick={() => setIsSettingsModalOpen(true)}
-          >
-            <Settings size={18} /> Settings
-          </button> */}
           <button 
             className={styles.settingsBtn} 
             onClick={() => setIsSettingsModalOpen(true)}
@@ -257,7 +274,6 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
 
       {activeTab === 'assignments' ? (
         <div className={styles.grid}>
-          {/* Add Assignment Button - Opens Modal */}
           <div 
             className={styles.card} 
             style={{ border: '2px dashed #d4b4d6', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', minHeight: '150px' }}

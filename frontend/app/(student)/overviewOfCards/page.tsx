@@ -519,7 +519,7 @@ export default function OverviewOfCardsPage() {
                   <div style={buttonGroup}> 
                     <PrimaryButton 
                       label="Flashcards" 
-                      onClick={() => router.push(`/flashcards?id=${setId}`)} 
+                      onClick={() => router.push(`/flashcards/${setId}`)}
                     />
                     {/*<PrimaryButton 
                       label="Multiple Choice" 

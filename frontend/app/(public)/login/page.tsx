@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from "next/link";
 import Image from "next/image"; 
 import { useRouter } from 'next/navigation';
-import { auth, signInWithEmailAndPassword } from '../../../initializeFirebase'; 
+import { auth, signInWithEmailAndPassword, API_BASE_URL } from '../../../initializeFirebase'; 
 import styles from '../auth.module.css'; 
 
 export default function LoginPage() {

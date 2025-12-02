@@ -120,7 +120,7 @@ export default function StudentDashboard() {
 
               {set.createdBy && (
                 <p style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
-                  Created by: <strong>{set.createdBy}</strong>
+                  Created by: <i>{set.createdBy}</i>
                 </p>
               )}
 
@@ -181,7 +181,7 @@ export default function StudentDashboard() {
             <div className={styles.exploreMeta}>Public Deck • {formatDate(set.dateCreated)}</div>
             {set.createdBy && (
             <p className={styles.exploreMeta} style={{ marginTop: "4px" }}>
-              Created by: <strong>{set.createdBy}</strong>
+              Created by: <i>{set.createdBy}</i>
             </p>
           )}
           </Link>

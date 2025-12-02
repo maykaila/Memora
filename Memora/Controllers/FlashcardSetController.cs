@@ -162,5 +162,23 @@ namespace Memora.Controllers
                 return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
             }
         }
+
+        [HttpGet("{setId}/cards")]
+        public async Task<IActionResult> GetCards(string setId)
+        {
+            try
+            {
+                var set = await _setService.GetSetByIdAsync(setId);
+                if (set == null)
+                    return NotFound(new { message = "Set not found." });
+
+                var cards = await _setService.GetCardsForSetAsync(setId);
+                return Ok(cards);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Failed to load cards.", error = ex.Message });
+            }
+        }
     }
 }

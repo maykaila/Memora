@@ -5,8 +5,8 @@ namespace Memora.Models
     [FirestoreData]
     public class Flashcard
     {
-        [FirestoreProperty("card_id")]
-        public string CardId { get; set; } = null!; // Document ID
+        [FirestoreDocumentId] // manually assign this after ConvertTo()
+        public string CardId { get; set; } = null!;
 
         // We don't need set_id here because this card will live
         // in a subcollection *inside* a FlashcardSet document.

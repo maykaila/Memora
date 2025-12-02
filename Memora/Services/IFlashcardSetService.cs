@@ -22,5 +22,9 @@ namespace Memora.Services
 
         // Get username
         Task<string> GetUsernameAsync(string userId);
+
+        // Get cards
+        Task<List<Flashcard>> GetCardsForSetAsync(string setId);
+        
     }
 }

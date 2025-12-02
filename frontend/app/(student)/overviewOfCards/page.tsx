@@ -56,6 +56,117 @@ export default function OverviewOfCardsPage() {
     return data.map((c: any) => normalizeCard(c));
   };
 
+  /* ============================= */
+  /*             STYLES            */
+  /* ============================= */ 
+
+  const PageContainer = ({ children }: { children: React.ReactNode }) => {
+    return (
+      <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
+        {children}
+      </div>
+    );
+  };
+
+  const twoColumnWrapper = {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    gap: 30,
+    width: "65%",
+    margin: "30px auto",
+    flexWrap: "wrap" as const,
+  };
+
+  const leftColumn = {
+    flex: "1 1 40%",
+    backgroundColor: "#fff",
+    padding: 50,
+    borderRadius: 20,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+    minWidth: 75,
+  };
+
+  const rightColumn = {
+    flex: "1 1 55%",
+    backgroundColor: "#fff",
+    padding: 50,
+    borderRadius: 20,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+    minWidth: 320,
+  };
+  
+  const cardContainer = {
+    backgroundColor: "#fff",
+    padding: 40,
+    borderRadius: 20,
+    boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+  };
+
+  const titleText = {
+    fontSize: 28,
+    fontWeight: 700,
+    marginBottom: 10,
+  };
+
+  const subtitleText = {
+    color: "#555",
+    marginBottom: 5,
+  };
+
+  const tagStyle = {
+    color: "#6a0dad",
+    fontStyle: "italic",
+    marginBottom: 20,
+  };
+
+  const buttonGroup = {
+    display: "flex",
+    gap: 15,
+    margin: "20px 0 30px 0",
+  };
+
+  const sectionTitle = {
+    fontSize: 20,
+    marginTop: 20,
+    marginBottom: 10,
+  };
+
+  const termItem = {
+    padding: "12px 0",
+    borderBottom: "1px solid #eee",
+  };
+
+  /* ============================= */
+  /*      REUSABLE COMPONENTS      */
+  /* ============================= */ 
+
+  const PrimaryButton = ({
+    label,
+    onClick,
+  }: {
+    label: string;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      style={{
+        padding: "10px 20px",
+        backgroundColor: "#4a1942",
+        color: "white",
+        border: "none",
+        borderRadius: 8,
+        cursor: "pointer",
+        fontSize: 14,
+        transition: "0.2s",
+      }}
+      onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
+      onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+    >
+      {label}
+    </button>
+  );
+
   /** Load set + cards */
   useEffect(() => {
     const loadData = async () => {
@@ -103,135 +214,59 @@ export default function OverviewOfCardsPage() {
 
   return (
     <PageContainer>
-      {/* FLASHCARD SET BOX */}
-      <div style={cardContainer}>
-        <h1 style={titleText}>{setData.title}</h1>
+      <div style={twoColumnWrapper}>
+        
+        {/* LEFT SIDE — SET INFORMATION */}
+        <div style={leftColumn}>
+          <h1 style={titleText}>{setData.title}</h1>
 
-        <p style={subtitleText}>{setData.description}</p>
+          <p style={subtitleText}>{setData.description}</p>
 
-        {setData.createdBy && (
-          <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}>
-            Created by: <i>{setData.createdBy}</i>
-          </p>
-        )}
+          {setData.createdBy && (
+            <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}>
+              Created by: <i>{setData.createdBy}</i>
+            </p>
+          )}
 
-        {setData.tags.length > 0 && (
-          <p style={tagStyle}>{setData.tags.join(", ")}</p>
-        )}
+          {setData.tags.length > 0 && (
+            <p style={tagStyle}>{setData.tags.join(", ")}</p>
+          )}
 
-        {/* BUTTON GROUP */}
-        <div style={buttonGroup}>
-          <PrimaryButton
-            label="Flashcards"
-            onClick={() => router.push(`/flashcards?id=${setId}`)}
-          />
-          <PrimaryButton
-            label="Multiple Choice"
-            onClick={() => router.push(`/multipleChoice?id=${setId}`)}
-          />
-          <PrimaryButton
-            label="Quiz"
-            onClick={() => router.push(`/quiz?id=${setId}`)}
-          />
+          <div style={buttonGroup}>
+            <PrimaryButton
+              label="Flashcards"
+              onClick={() => router.push(`/flashcards?id=${setId}`)}
+            />
+            <PrimaryButton
+              label="Multiple Choice"
+              onClick={() => router.push(`/multipleChoice?id=${setId}`)}
+            />
+            <PrimaryButton
+              label="Quiz"
+              onClick={() => router.push(`/quiz?id=${setId}`)}
+            />
+          </div>
         </div>
 
-        <h2 style={sectionTitle}>Terms & Definitions</h2>
+        {/* RIGHT SIDE — TERMS & DEFINITIONS */}
+        <div style={rightColumn}>
+          <h2 style={sectionTitle}>Terms & Definitions</h2>
 
-        {/* TERMS LIST */}
-        {cards.length === 0 ? (
-          <p style={{ color: "#999" }}>No cards available.</p>
-        ) : (
-          <div style={{ marginTop: 10 }}>
-            {cards.map((card) => (
-              <div key={card.id} style={termItem}>
-                <strong style={{ fontSize: 16 }}>{card.term}</strong>
-                <p style={{ marginTop: 5, color: "#444" }}>{card.definition}</p>
-              </div>
-            ))}
-          </div>
-        )}
+          {cards.length === 0 ? (
+            <p style={{ color: "#999" }}>No cards available.</p>
+          ) : (
+            <div style={{ marginTop: 10 }}>
+              {cards.map((card) => (
+                <div key={card.id} style={termItem}>
+                  <strong style={{ fontSize: 16 }}>{card.term}</strong>
+                  <p style={{ marginTop: 5, color: "#444" }}>{card.definition}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </PageContainer>
   );
 }
-
-/* ============================= */
-/*      REUSABLE COMPONENTS      */
-/* ============================= */
-
-const PageContainer = ({ children }: any) => (
-  <div style={{ padding: 40, display: "flex", justifyContent: "center" }}>
-    <div style={{ width: "100%", maxWidth: 900 }}>{children}</div>
-  </div>
-);
-
-const PrimaryButton = ({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    style={{
-      padding: "10px 20px",
-      backgroundColor: "#4a1942",
-      color: "white",
-      border: "none",
-      borderRadius: 8,
-      cursor: "pointer",
-      fontSize: 14,
-      transition: "0.2s",
-    }}
-    onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
-    onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-  >
-    {label}
-  </button>
-);
-
-/* ============================ */
-/*            STYLES            */
-/* ============================ */
-
-const cardContainer = {
-  backgroundColor: "#fff",
-  padding: 40,
-  borderRadius: 12,
-  boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-};
-
-const titleText = {
-  fontSize: 28,
-  fontWeight: 700,
-  marginBottom: 10,
-};
-
-const subtitleText = {
-  color: "#555",
-  marginBottom: 5,
-};
-
-const tagStyle = {
-  color: "#6a0dad",
-  fontStyle: "italic",
-  marginBottom: 20,
-};
-
-const buttonGroup = {
-  display: "flex",
-  gap: 15,
-  margin: "20px 0 30px 0",
-};
-
-const sectionTitle = {
-  fontSize: 20,
-  marginTop: 20,
-  marginBottom: 10,
-};
-
-const termItem = {
-  padding: "12px 0",
-  borderBottom: "1px solid #eee",
-};

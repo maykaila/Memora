@@ -50,7 +50,7 @@
   max-width: 380px; 
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 .input {
@@ -81,7 +81,7 @@
   font-size: 16px;
   cursor: pointer;
   font-weight: bold;
-  margin-top: 15px;
+  margin-top: 5px;
   transition: transform 0.1s, opacity 0.2s;
 }
 

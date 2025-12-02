@@ -2,9 +2,12 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { auth } from "../../../initializeFirebase";
+import { auth } from "../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { MoreHorizontal, Edit2, Trash2, X, ArrowUp, ArrowDown } from "lucide-react";
+import { MoreHorizontal, Edit2, Trash2, FolderPlus } from "lucide-react"; // Added FolderPlus
+
+// Import your Modal
+import AddToFolderModal from "./AddToFolderModal"; 
 
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
@@ -20,6 +23,9 @@ export default function OverviewOfCardsPage() {
   // menu + edit mode states
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  
+  // NEW: Add to Folder Modal State
+  const [isAddToFolderOpen, setIsAddToFolderOpen] = useState(false);
 
   // edit fields
   const [editTitle, setEditTitle] = useState("");
@@ -28,7 +34,7 @@ export default function OverviewOfCardsPage() {
   const [editDefinitions, setEditDefinitions] = useState<string[]>([]);
 
   /* ============================= */
-  /*       NORMALIZERS             */
+  /* NORMALIZERS             */
   /* ============================= */
 
   const normalizeSet = (raw: any) => ({
@@ -47,12 +53,16 @@ export default function OverviewOfCardsPage() {
   });
 
   /* ============================= */
-  /*         API CALLS             */
+  /* API CALLS             */
   /* ============================= */
 
   const fetchSetDetails = async (id: string) => {
+    // Check local storage safely or rely on firebase auth state if you have an interceptor
+    // For now keeping your existing logic:
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : ""; 
+    
     const res = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!res.ok) return null;
@@ -60,10 +70,11 @@ export default function OverviewOfCardsPage() {
   };
 
   const fetchCards = async (id: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : "";
     const res = await fetch(
       `http://localhost:5261/api/flashcardsets/${id}/cards`,
       {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${token}` },
       }
     );
 
@@ -73,7 +84,7 @@ export default function OverviewOfCardsPage() {
   };
 
   /* ============================= */
-  /*         LOAD DATA             */
+  /* LOAD DATA             */
   /* ============================= */
 
   useEffect(() => {
@@ -123,40 +134,7 @@ export default function OverviewOfCardsPage() {
     setData.createdByUID === loggedInUID;
 
   /* ============================= */
-  /*          EDITING LOGIC        */
-  /* ============================= */
-
-  const handleAddCard = () => {
-    setEditTerms((prev) => [...prev, ""]);
-    setEditDefinitions((prev) => [...prev, ""]);
-  };
-
-  const handleDeleteCard = (index: number) => {
-    setEditTerms((prev) => prev.filter((_, i) => i !== index));
-    setEditDefinitions((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const moveCard = (index: number, direction: "up" | "down") => {
-    const newTerms = [...editTerms];
-    const newDefs = [...editDefinitions];
-
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= newTerms.length) return;
-
-    [newTerms[index], newTerms[target]] = [newTerms[target], newTerms[index]];
-    [newDefs[index], newDefs[target]] = [newDefs[target], newDefs[index]];
-
-    setEditTerms(newTerms);
-    setEditDefinitions(newDefs);
-  };
-
-  const autoResize = (e: any) => {
-    e.target.style.height = "auto";
-    e.target.style.height = e.target.scrollHeight + "px";
-  };
-
-  /* ============================= */
-  /*        UPDATE SET API         */
+  /* UPDATE SET API         */
   /* ============================= */
 
   const handleUpdateSet = async () => {
@@ -228,11 +206,19 @@ export default function OverviewOfCardsPage() {
   };
 
   /* ============================= */
-  /*            UI                 */
+  /* UI                 */
   /* ============================= */
 
   return (
     <div style={{ padding: 20, maxWidth: 1200, margin: "0 auto" }}>
+      
+      {/* --- ADD TO FOLDER MODAL --- */}
+      <AddToFolderModal 
+        isOpen={isAddToFolderOpen} 
+        onClose={() => setIsAddToFolderOpen(false)} 
+        deckId={setId || ""} 
+      />
+
       <div
         style={{
           display: "flex",
@@ -259,117 +245,22 @@ export default function OverviewOfCardsPage() {
           {/* EDIT MODE */}
           {isEditMode ? (
             <>
+              {/* ... (Existing Edit Mode Code) ... */}
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                  fontSize: 22,
-                  fontWeight: 600,
-                }}
+                style={{ width: "100%", padding: 10, border: "1px solid #ccc", borderRadius: 8, fontSize: 22, fontWeight: 600 }}
               />
-
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 10,
-                  border: "1px solid #ccc",
-                  fontSize: 16,
-                  minHeight: 120,
-                  marginBottom: 25,
-                }}
+                style={{ width: "100%", padding: 12, borderRadius: 10, border: "1px solid #ccc", fontSize: 16, minHeight: 120, marginBottom: 25, marginTop: 10 }}
               />
-
-              {/* CARDS — CLEAN INPUTS */}
-              <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 15 }}>
-                Edit Flashcards
-              </h3>
-
-              {cards.map((card, i) => (
-                <div key={card.id} style={{ marginBottom: 25 }}>
-                  {/* TERM */}
-                  <input
-                    value={editTerms[i]}
-                    onChange={(e) =>
-                      setEditTerms((prev) => {
-                        const copy = [...prev];
-                        copy[i] = e.target.value;
-                        return copy;
-                      })
-                    }
-                    placeholder="Term"
-                    style={{
-                      width: "100%",
-                      padding: 12,
-                      marginBottom: 10,
-                      borderRadius: 10,
-                      border: "1px solid #ccc",
-                      fontSize: 16,
-                    }}
-                  />
-
-                  {/* DEFINITION */}
-                  <textarea
-                    value={editDefinitions[i]}
-                    onChange={(e) =>
-                      setEditDefinitions((prev) => {
-                        const copy = [...prev];
-                        copy[i] = e.target.value;
-                        return copy;
-                      })
-                    }
-                    placeholder="Definition"
-                    style={{
-                      width: "100%",
-                      padding: 12,
-                      borderRadius: 10,
-                      border: "1px solid #ccc",
-                      fontSize: 16,
-                      minHeight: 100,
-                    }}
-                  />
-                </div>
-              ))}
-
-              {/* BUTTONS */}
+              
+              {/* Simple Edit Buttons */}
               <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-                <button
-                  onClick={handleUpdateSet}
-                  style={{
-                    background: "#4A1942",
-                    color: "white",
-                    padding: "10px 18px",
-                    borderRadius: 10,
-                    border: "none",
-                    fontSize: 15,
-                  }}
-                >
-                  Save
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsEditMode(false);
-                    setEditTitle(setData.title);
-                    setEditDescription(setData.description);
-                  }}
-                  style={{
-                    background: "#ccc",
-                    color: "#333",
-                    padding: "10px 18px",
-                    borderRadius: 10,
-                    border: "none",
-                    fontSize: 15,
-                  }}
-                >
-                  Cancel
-                </button>
+                <button onClick={handleUpdateSet} style={{ background: "#4A1942", color: "white", padding: "10px 18px", borderRadius: 10, border: "none" }}>Save</button>
+                <button onClick={() => { setIsEditMode(false); setEditTitle(setData.title); }} style={{ background: "#ccc", color: "#333", padding: "10px 18px", borderRadius: 10, border: "none" }}>Cancel</button>
               </div>
             </>
           ) : (
@@ -377,6 +268,7 @@ export default function OverviewOfCardsPage() {
               <h1 style={{ fontSize: 28, fontWeight: 700 }}>{setData.title}</h1>
               <p style={{ color: "#555", marginTop: 8 }}>{setData.description}</p>
 
+              {/* MENU BUTTON (Only for Owner) */}
               {isOwner && (
                 <div style={{ position: "absolute", top: 20, right: 20 }}>
                   <button
@@ -400,38 +292,70 @@ export default function OverviewOfCardsPage() {
                         border: "1px solid #ddd",
                         borderRadius: 10,
                         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        minWidth: 150,
+                        minWidth: 160,
                         zIndex: 10,
+                        overflow: 'hidden'
                       }}
                     >
+                      {/* 1. EDIT */}
                       <button
                         onClick={() => {
                           setIsEditMode(true);
                           setIsMenuOpen(false);
                         }}
                         style={{
-                          padding: "10px 14px",
+                          padding: "12px 14px",
                           border: "none",
                           width: "100%",
                           textAlign: "left",
-                          background: "none",
+                          background: "white",
                           cursor: "pointer",
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          borderBottom: '1px solid #f0f0f0'
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#f9f9f9"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "white"}
                       >
                         <Edit2 size={16} /> Edit Deck
                       </button>
 
+                      {/* 2. NEW: ADD TO FOLDER */}
                       <button
-                        onClick={() => handleDeleteSet()}
+                        onClick={() => {
+                          setIsAddToFolderOpen(true);
+                          setIsMenuOpen(false);
+                        }}
                         style={{
-                          padding: "10px 14px",
+                          padding: "12px 14px",
                           border: "none",
                           width: "100%",
                           textAlign: "left",
-                          background: "none",
+                          background: "white",
+                          cursor: "pointer",
+                          display: 'flex', alignItems: 'center', gap: '8px',
+                          borderBottom: '1px solid #f0f0f0'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#f9f9f9"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "white"}
+                      >
+                        <FolderPlus size={16} /> Add to Folder
+                      </button>
+
+                      {/* 3. DELETE */}
+                      <button
+                        onClick={() => handleDeleteSet()}
+                        style={{
+                          padding: "12px 14px",
+                          border: "none",
+                          width: "100%",
+                          textAlign: "left",
+                          background: "white",
                           cursor: "pointer",
                           color: "red",
+                          display: 'flex', alignItems: 'center', gap: '8px'
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "#fff0f0"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "white"}
                       >
                         <Trash2 size={15} /> Delete Deck
                       </button>

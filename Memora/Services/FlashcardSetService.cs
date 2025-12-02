@@ -192,5 +192,32 @@ namespace Memora.Services
 
             return cards;
         }
+
+        public async Task<FlashcardSet?> UpdateSetAsync(string userId, string setId, UpdateFlashcardSetDto dto)
+        {
+            // 1. Get reference to the document using _setsCollection (Firestore)
+            DocumentReference docRef = _setsCollection.Document(setId);
+            DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists) return null;
+
+            // 2. Convert to object to check ownership
+            var set = snapshot.ConvertTo<FlashcardSet>();
+
+            // Only owner can edit
+            if (set.UserId != userId) return null;
+
+            // 3. Update the local object
+            set.Title = dto.Title;
+            set.Description = dto.Description;
+            set.LastUpdated = DateTime.UtcNow;
+
+            // 4. Save changes back to Firestore
+            // SetOptions.MergeAll ensures we update these fields without overwriting the whole doc (like deleting cards)
+            await docRef.SetAsync(set, SetOptions.MergeAll);
+            
+            return set;
+        }
+
     }
 }

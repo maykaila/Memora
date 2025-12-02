@@ -21,21 +21,18 @@ export default function LoginPage() {
     setError(null); 
     setIsLoading(true);
 
-    // --- VALIDATION START ---
     if (!email || !password) {
       setError("Please enter both email and password.");
       setIsLoading(false);
       return;
     }
 
-    // Optional: Quick email format check to save an API call
     const emailFormatError = validateEmail(email);
     if (emailFormatError) {
         setError(emailFormatError);
         setIsLoading(false);
         return;
     }
-    // --- VALIDATION END ---
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -76,56 +73,62 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={styles.pageWrapper}>
-      <div className={styles.authCard}>
-        
-        {/* LEFT SIDE */}
-        <div className={styles.formSection}>
-          <form className={styles.formContainer} onSubmit={handleLogin}>
-            <h2 style={{ color: '#4a1942', marginBottom: '1rem' }}>Welcome Back!</h2>
-            {error && <p className={styles.error}>{error}</p>}
+    <div className={styles.layoutContainer}>
+      
+      <div className={styles.mainContent}>
+        <div className={styles.pageWrapper}>
+          <div className={styles.authCard}>
+            
+            {/* LEFT SIDE */}
+            <div className={styles.formSection}>
+              <form className={styles.formContainer} onSubmit={handleLogin}>
+                <h2 style={{ color: '#4a1942', marginBottom: '1rem' }}>Welcome Back!</h2>
+                {error && <p className={styles.error}>{error}</p>}
 
-            <input
-              type="email"
-              placeholder="Email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            
-            <Link href="/forgot-p" className={styles.forgotPassword}>
-              Forgot Password?
-            </Link>
-            
-            <button type="submit" className={styles.submitButton} disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
-            </button>
-            
-            <div style={{textAlign: 'center', marginTop: '20px', fontSize: '14px', color: '#555'}}>
-              Don't have an account? <Link href="/signup" style={{color: '#d16d6d', fontWeight: 'bold', textDecoration: 'none'}}>Sign Up</Link>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  className={styles.input}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  className={styles.input}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                
+                <Link href="/forgot-p" className={styles.forgotPassword}>
+                  Forgot Password?
+                </Link>
+                
+                <button type="submit" className={styles.submitButton} disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Login"}
+                </button>
+                
+                <div style={{textAlign: 'center', marginTop: '20px', fontSize: '14px', color: '#555'}}>
+                  Don't have an account? <Link href="/signup" style={{color: '#d16d6d', fontWeight: 'bold', textDecoration: 'none'}}>Sign Up</Link>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
 
-        {/* RIGHT SIDE */}
-        <div className={styles.imageSection}>
-          <Image 
-            src="/1.svg" 
-            alt="Login Visual" 
-            width={500} 
-            height={500} 
-            className={styles.heroImage}
-            priority
-          />
+            {/* RIGHT SIDE */}
+            <div className={styles.imageSection}>
+              <Image 
+                src="/1.svg" 
+                alt="Login Visual" 
+                width={500} 
+                height={500} 
+                className={styles.heroImage}
+                priority
+              />
+            </div>
+          </div>
         </div>
       </div>
+
     </div>
   );
 }

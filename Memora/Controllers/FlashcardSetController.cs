@@ -6,7 +6,7 @@ using Memora.DTOs;
 namespace Memora.Controllers
 {
     [ApiController]
-    [Route("api/flashcardsets")] // Base URL: /api/flashcardsets
+    [Route("api/flashcardsets")]
     public class FlashcardSetsController : ControllerBase
     {
         private readonly IFlashcardSetService _setService;
@@ -18,7 +18,6 @@ namespace Memora.Controllers
             _auth = FirebaseAuth.DefaultInstance;
         }
 
-        // --- Helper: Gets the authenticated user's UID from their token ---
         private async Task<string?> GetUserIdFromTokenAsync()
         {
             if (Request.Headers.TryGetValue("Authorization", out var authHeader))
@@ -41,49 +40,27 @@ namespace Memora.Controllers
             return null;
         }
 
-        // ==========================================
-        // 1. NEW ENDPOINT: Get All Public Sets
-        // ==========================================
-        [HttpGet] // Matches GET /api/flashcardsets
+        [HttpGet]
         public async Task<IActionResult> GetPublicSets()
         {
-            try
-            {
-                // NOTE: You must define 'GetPublicSetsAsync' in your IFlashcardSetService first!
-                var sets = await _setService.GetPublicSetsAsync();
-                return Ok(sets);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
-            }
+            var sets = await _setService.GetPublicSetsAsync();
+            return Ok(sets);
         }
 
-        [HttpPost] // POST /api/flashcardsets
+        [HttpPost]
         public async Task<IActionResult> CreateSet([FromBody] CreateFlashcardSetRequest request)
         {
-            try
-            {
-                string? userId = await GetUserIdFromTokenAsync();
-                if (userId == null)
-                {
-                    return Unauthorized(new { message = "Invalid or missing token." });
-                }
+            string? userId = await GetUserIdFromTokenAsync();
+            if (userId == null)
+                return Unauthorized(new { message = "Invalid or missing token." });
 
-                string? username = await GetUsernameFromTokenAsync();
-                if (username == null)
-                {
-                    return Unauthorized(new { message = "User must have a username claim." });
-                }
+            string? username = await GetUsernameFromTokenAsync();
+            if (username == null)
+                return Unauthorized(new { message = "User must have a username claim." });
 
-                var newSet = await _setService.CreateSetAsync(userId, request);
+            var newSet = await _setService.CreateSetAsync(userId, request);
 
-                return CreatedAtAction(nameof(GetSet), new { setId = newSet.SetId }, newSet);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
-            }
+            return CreatedAtAction(nameof(GetSet), new { setId = newSet.SetId }, newSet);
         }
 
         private async Task<string?> GetUsernameFromTokenAsync()
@@ -102,83 +79,67 @@ namespace Memora.Controllers
                 return claims["name"]?.ToString();
 
             if (claims.ContainsKey("email"))
-                return claims["email"]?.ToString(); // fallback
+                return claims["email"]?.ToString();
 
             return null;
         }
 
-
-        [HttpGet("my-sets")] // GET /api/flashcardsets/my-sets
+        [HttpGet("my-sets")]
         public async Task<IActionResult> GetMySets()
         {
-            try
-            {
-                string? userId = await GetUserIdFromTokenAsync();
-                if (userId == null)
-                {
-                    return Unauthorized(new { message = "Invalid or missing token." });
-                }
+            string? userId = await GetUserIdFromTokenAsync();
+            if (userId == null)
+                return Unauthorized();
 
-                var sets = await _setService.GetSetsForUserAsync(userId);
-                return Ok(sets);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
-            }
+            var sets = await _setService.GetSetsForUserAsync(userId);
+            return Ok(sets);
         }
-        
+
+        // ORDER FIX (important!)
+        [HttpGet("{setId}/cards")]
+        public async Task<IActionResult> GetCards(string setId)
+        {
+            var cards = await _setService.GetCardsForSetAsync(setId);
+            if (cards == null) return NotFound();
+            return Ok(cards);
+        }
+
+        // Only ONE GetSet
         [HttpGet("{setId}")]
         public async Task<IActionResult> GetSet(string setId)
         {
             var set = await _setService.GetSetByIdAsync(setId);
-
-            if (set == null)
-                return NotFound(new { message = "Flashcard set not found." });
-
+            if (set == null) return NotFound();
             return Ok(set);
+        }
+
+        [HttpPut("{setId}")]
+        public async Task<IActionResult> UpdateFlashcardSet(string setId, [FromBody] UpdateFlashcardSetDto dto)
+        {
+            string? userId = await GetUserIdFromTokenAsync();
+            if (userId == null)
+                return Unauthorized();
+
+            var updatedSet = await _setService.UpdateSetAsync(userId, setId, dto);
+
+            if (updatedSet == null)
+                return NotFound(new { message = "Set not found or permission denied." });
+
+            return Ok(updatedSet);
         }
 
         [HttpDelete("{setId}")]
         public async Task<IActionResult> DeleteSet(string setId)
         {
-            try
-            {
-                string? userId = await GetUserIdFromTokenAsync();
-                if (userId == null) return Unauthorized(new { message = "Invalid or missing token." });
+            string? userId = await GetUserIdFromTokenAsync();
+            if (userId == null) return Unauthorized();
 
-                bool success = await _setService.DeleteSetAsync(setId, userId);
+            bool success = await _setService.DeleteSetAsync(setId, userId);
 
-                if (!success)
-                {
-                    // Either not found or not authorized (we treat them same for security)
-                    return NotFound(new { message = "Set not found or you do not have permission to delete it." });
-                }
+            if (!success)
+                return NotFound();
 
-                return Ok(new { message = "Flashcard set deleted successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error.", error = ex.Message });
-            }
-        }
-
-        [HttpGet("{setId}/cards")]
-        public async Task<IActionResult> GetCards(string setId)
-        {
-            try
-            {
-                var set = await _setService.GetSetByIdAsync(setId);
-                if (set == null)
-                    return NotFound(new { message = "Set not found." });
-
-                var cards = await _setService.GetCardsForSetAsync(setId);
-                return Ok(cards);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Failed to load cards.", error = ex.Message });
-            }
+            return Ok(new { message = "Flashcard set deleted successfully." });
         }
     }
 }

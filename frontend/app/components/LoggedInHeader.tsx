@@ -127,14 +127,14 @@ export default function LoggedInHeader({ role = "student" }: LoggedInHeaderProps
       />
 
       <header className={styles.header}>
-        <div className={styles.searchWrapper}>
+        {/* <div className={styles.searchWrapper}>
           <Search size={18} />
           <input
             type="text"
             placeholder="Search for titles, authors, categories..."
             className={styles.searchInput}
           />
-        </div>
+        </div> */}
 
         <div className={styles.headerActions} ref={menuRef}>
           {/* PLUS BUTTON */}

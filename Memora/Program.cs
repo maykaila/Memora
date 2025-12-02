@@ -59,10 +59,10 @@ catch (Exception ex)
 // --- Add CORS Policy ---
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextApp",
+    options.AddPolicy("AllowMemoraFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins("http://localhost:3000", "https://memora.dcism.org")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -84,7 +84,8 @@ var app = builder.Build();
 
 app.UseRouting(); 
 
-app.UseCors("AllowNextApp");
+// app.UseCors("AllowNextApp");
+app.UseCors("AllowMemoraFrontend");
 
 app.UseAuthorization(); 
 

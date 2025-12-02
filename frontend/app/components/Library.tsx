@@ -19,9 +19,9 @@ type LibrarySet = {
   id: string;
   title: string;
   formattedDate: string;
-  daysAgo: number;
-  category: string;
+  timeAgo: string; // Changed to string to support "Today", "Yesterday", etc.
   cardCount: number;
+  category: string;
 };
 
 type LibraryFolder = {
@@ -52,13 +52,40 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
 
-  // --- Helper: Calculate Days Ago ---
-  const calculateDaysAgo = (dateString: string) => {
-    if (!dateString) return 0;
-    const createdDate = new Date(dateString);
+  // --- Helper: Format Time Ago (Today / Yesterday / Days Ago) ---
+  const formatTimeAgo = (dateString: string) => {
+    if (!dateString) return "";
+    
+    const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - createdDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+    // 1. Check if it is the same Calendar Day (Today)
+    if (date.toDateString() === now.toDateString()) {
+      return "Today";
+    }
+
+    // 2. Check if it was Yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    }
+
+    // 3. Otherwise, calculate days/months/years ago
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    const diffInDays = Math.floor(diffInSeconds / (60 * 60 * 24));
+
+    if (diffInDays < 30) {
+        return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
+    }
+
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) {
+        return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
+    }
+
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
   };
 
   // --- Helper: Format Date ---
@@ -82,20 +109,28 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
       const setsRes = await fetch("http://localhost:5261/api/flashcardsets/my-sets", { headers });
       if (setsRes.ok) {
         const data = await setsRes.json();
-        setSets(data.map((item: any) => ({
-          id: item.SetId || item.setId || "unknown",
-          title: item.Title || item.title || "Untitled Set", 
-          formattedDate: formatDate(item.DateCreated || item.dateCreated),
-          daysAgo: calculateDaysAgo(item.DateCreated || item.dateCreated),
+        setSets(data.map((item: any) => {
+             // Logic to find the "Last Opened" date
+             // Fallbacks: LastViewed -> DateModified -> DateCreated
+             const activeDate = item.LastViewed || item.lastViewed || item.DateModified || item.dateModified || item.DateCreated || item.dateCreated;
 
-          cardCount: item.Flashcards ? item.Flashcards.length : (item.flashcards ? item.flashcards.length : 0),
-          
-          category: (item.TagIds && item.TagIds.length > 0) 
-            ? item.TagIds[0] 
-            : (item.tagIds && item.tagIds.length > 0) 
-            ? item.tagIds[0] 
-            : "General",
-        })));
+             return {
+                id: item.SetId || item.setId || "unknown",
+                title: item.Title || item.title || "Untitled Set", 
+                formattedDate: formatDate(item.DateCreated || item.dateCreated),
+                
+                // USE NEW TIME FUNCTION HERE
+                timeAgo: formatTimeAgo(activeDate),
+
+                cardCount: item.Flashcards ? item.Flashcards.length : (item.flashcards ? item.flashcards.length : 0),
+                
+                category: (item.TagIds && item.TagIds.length > 0) 
+                    ? item.TagIds[0] 
+                    : (item.tagIds && item.tagIds.length > 0) 
+                    ? item.tagIds[0] 
+                    : "General",
+            };
+        }));
       }
 
       // 2. Fetch Folders
@@ -332,14 +367,14 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                       </span>
                       <span>|</span>
                       <span className="lib-card-time-meta">
-                    <Clock size={12} /> 
-                    {/* Check if it is exactly 1 */}
-                    {set.daysAgo} {set.daysAgo === 1 ? "day" : "days"} ago
-                  </span>
+                        <Clock size={12} /> 
+                        {/* Use the computed string directly */}
+                        {set.timeAgo}
+                      </span>
                       <span>|</span>
-                      {/* <span className="lib-card-category-pill">
+                       <span className="lib-card-category-pill">
                         {set.category}
-                      </span> */}
+                      </span>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Added useCallback
 import { useRouter } from "next/navigation";
 import "./library.css";
 import { auth } from "../../initializeFirebase"; 
@@ -95,8 +95,8 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
     });
   };
 
-  // --- Data Fetching Logic ---
-  const fetchData = async (user: any) => {
+  // --- Data Fetching Logic (Wrapped in useCallback) ---
+  const fetchData = useCallback(async (user: any) => {
     try {
       const token = await user.getIdToken();
       const headers = { Authorization: `Bearer ${token}` };
@@ -133,10 +133,13 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
     } catch (err) {
       console.error("Failed to fetch library:", err);
     } finally {
+      // We only set loading to false, never back to true, 
+      // so this enables "silent" background updates.
       setLoading(false);
     }
-  };
+  }, []);
 
+  // --- Initial Load ---
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -146,7 +149,20 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [fetchData]);
+
+  // --- REAL-TIME POLLING (Updates counts every 5 seconds) ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+        // We use auth.currentUser directly to avoid stale closures or dependency loops
+        if (auth.currentUser) {
+            fetchData(auth.currentUser);
+        }
+    }, 2000); // Poll every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [fetchData]);
+  // -----------------------------------------------------------
 
   const refreshData = () => {
     if(auth.currentUser) fetchData(auth.currentUser);
@@ -248,8 +264,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
             />
           </div>
 
-          {/* REMOVED: Search by Category Button */}
-
           {/* DYNAMIC CREATE BUTTON */}
           {activeTab === 'sets' ? (
             <button
@@ -318,7 +332,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
             {filteredSets.map((set) => (
               <div key={set.id} className="lib-card" onClick={() => {
                 if(menuOpen !== set.id) {
-                   // Dynamic Routing for Overview Page
                    const path = role === 'teacher' ? `/teacher-cardOverview?id=${set.id}` : `/overviewOfCards?id=${set.id}`;
                    router.push(path);
                 }
@@ -361,8 +374,6 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
                 <div className="lib-card-actions">
                   {menuOpen === set.id && (
                     <div className="lib-popup-menu-inline" onClick={e => e.stopPropagation()}>
-                      {/* REMOVED: Edit Button */}
-
                       <button
                         className="lib-action-btn lib-folder-btn"
                         onClick={(e) => { e.stopPropagation(); handleAddToFolderClick(set.id); }}

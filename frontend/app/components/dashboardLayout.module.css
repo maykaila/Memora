@@ -50,14 +50,16 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.2rem;
+  padding: 0 1.2rem; 
+  height: 100px;      
   border-radius: 18px;
-  background: #fff; /* Very light pink/white for Recents/Folders */
+  background: #fff; 
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   text-decoration: none;
   color: inherit;
   border: 2px solid transparent;
+  overflow: hidden; 
 }
 
 .standardCard:hover {
@@ -66,7 +68,6 @@
   border-color: #e1b7ff;
 }
 
-/* Icons for Standard Cards */
 .iconBox {
   width: 42px;
   height: 42px;
@@ -74,24 +75,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  flex-shrink: 0; 
 }
 
 .iconBlue { background: #f2d7ee; color: #0284c7; }
 .iconGreen { background: #dcfce7; color: #166534; }
 .iconPurple { background: #f3e8ff; color: #7e22ce; }
 
-/* Text for Standard Cards */
 .cardTitle {
   font-size: 0.95rem;
   font-weight: 700;
   color: #2b1027;
   margin-bottom: 0.2rem;
+  white-space: nowrap;       
+  overflow: hidden;          
+  text-overflow: ellipsis;   
+  display: block;            
+  max-width: 100%;           
 }
 
 .cardMeta {
   font-size: 0.75rem;
   color: #6b4b6a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------- 2. EXPLORE / LIBRARY GRID (The Big Purple Cards) ---------- */

@@ -330,14 +330,14 @@ export default function OverviewOfCardsPage() {
               label="Flashcards"
               onClick={() => router.push(`/flashcards?id=${setId}`)}
             />
-            <PrimaryButton
+            {/* <PrimaryButton
               label="Multiple Choice"
               onClick={() => router.push(`/multipleChoice?id=${setId}`)}
             />
             <PrimaryButton
               label="Quiz"
               onClick={() => router.push(`/quiz?id=${setId}`)}
-            />
+            /> */}
           </div>
         </div>
 

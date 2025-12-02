@@ -5,16 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { auth, createUserWithEmailAndPassword } from '../../../initializeFirebase'; 
-import { GraduationCap, School } from "lucide-react"; // Icons for visual cue
+import { GraduationCap, School } from "lucide-react"; 
 import styles from '../auth.module.css'; 
 import { updateProfile } from "firebase/auth";
+import { validateEmail, validatePassword, validateUsername } from '../../../services/validation'; // <--- Check this path
 
 export default function SignUpPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // Default to student
   const [role, setRole] = useState<'student' | 'teacher'>('student'); 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,24 +26,41 @@ export default function SignUpPage() {
     setError(null);
     setIsLoading(true);
 
-    if (!username || !email || !password || !confirmPassword) {
-      setError("Please fill in all fields.");
+    // --- VALIDATION START ---
+    
+    // 1. Validate Username
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      setError(usernameError);
       setIsLoading(false);
       return;
     }
+
+    // 2. Validate Email
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
+      setIsLoading(false);
+      return;
+    }
+
+    // 3. Validate Password Match
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       setIsLoading(false);
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+
+    // 4. Validate Password Complexity (Min 6 chars)
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       setIsLoading(false);
       return;
     }
+    // --- VALIDATION END ---
 
     try {
-      // 1. Create Auth User in Firebase
       let userCredential;
       try {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -65,8 +82,6 @@ export default function SignUpPage() {
 
       const idToken = await user.getIdToken();
 
-      // 2. Create User Profile in Backend (SQL/Firestore)
-      // We now include the 'role' in the body
       const response = await fetch("http://localhost:5261/api/users/create", {
         method: "POST",
         headers: {
@@ -76,7 +91,7 @@ export default function SignUpPage() {
         body: JSON.stringify({
           username: username,
           email: user.email,
-          role: role.toUpperCase(), // Send 'STUDENT' or 'TEACHER'
+          role: role.toUpperCase(), 
           firebaseId: user.uid 
         }),
       });
@@ -94,7 +109,6 @@ export default function SignUpPage() {
         return;
       }
 
-      // 3. Redirect based on the selected Role
       if (role === 'teacher') {
         router.push("/teacher-dashboard");
       } else {
@@ -115,7 +129,7 @@ export default function SignUpPage() {
         {/* LEFT SIDE */}
         <div className={styles.formSection}>
           <form className={styles.formContainer} onSubmit={handleSignUp}>
-            <h2 style={{ color: '#4a1942', marginBottom: '1rem' }}>Create Account</h2>
+            <h2 style={{ color: '#4a1942', marginBottom: '0px' }}>Create Account</h2>
             
             {error && <p className={styles.error}>{error}</p>}
 

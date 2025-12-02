@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from "next/link";
 import Image from "next/image"; 
 import { useRouter } from 'next/navigation';
-import { auth, signInWithEmailAndPassword, API_BASE_URL } from '../../../initializeFirebase'; 
+import { auth, signInWithEmailAndPassword } from '../../../initializeFirebase'; 
+import { validateEmail } from '../../../services/validation';
 import styles from '../auth.module.css'; 
 
 export default function LoginPage() {
@@ -20,21 +21,27 @@ export default function LoginPage() {
     setError(null); 
     setIsLoading(true);
 
+    // --- VALIDATION START ---
     if (!email || !password) {
       setError("Please enter both email and password.");
       setIsLoading(false);
       return;
     }
 
+    // Optional: Quick email format check to save an API call
+    const emailFormatError = validateEmail(email);
+    if (emailFormatError) {
+        setError(emailFormatError);
+        setIsLoading(false);
+        return;
+    }
+    // --- VALIDATION END ---
+
     try {
-      // 1. Authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      // 2. Fetch User Profile from Backend to get the ROLE
-      // We assume you have an endpoint like GET /api/users/me or GET /api/users/{uid}
-      // If you don't have this, you must create it in your .NET backend.
       const response = await fetch(`http://localhost:5261/api/users/${user.uid}`, {
         method: 'GET',
         headers: {
@@ -45,17 +52,14 @@ export default function LoginPage() {
 
       if (response.ok) {
         const userData = await response.json();
-        
-        // 3. Redirect based on Role received from database
-        const userRole = userData.role?.toUpperCase(); // Ensure case safety
+        const userRole = userData.role?.toUpperCase(); 
 
         if (userRole === 'TEACHER') {
           router.push("/teacher-dashboard");
         } else {
-          router.push("/dashboard"); // Default to student dashboard
+          router.push("/dashboard"); 
         }
       } else {
-        // Fallback if backend fails: Default to student dashboard or show error
         console.warn("Could not fetch user role, defaulting to student dashboard");
         router.push("/dashboard");
       }

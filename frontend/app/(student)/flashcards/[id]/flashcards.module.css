@@ -1,0 +1,24 @@
+.pageContainer {
+  padding: 40px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.setTitle {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.setDesc {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.flashcardContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  justify-content: center;
+  margin-top: 20px;
+}

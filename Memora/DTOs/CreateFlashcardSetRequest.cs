@@ -23,4 +23,11 @@ namespace Memora.DTOs
         // that you send from your frontend.
         public List<CardDto> Cards { get; set; } = new List<CardDto>();
     }
+
+    public class UpdateFlashcardSetDto
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+    }
+
 }

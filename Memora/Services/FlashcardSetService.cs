@@ -192,5 +192,22 @@ namespace Memora.Services
 
             return cards;
         }
+
+        public async Task<FlashcardSet?> UpdateSetAsync(string userId, string setId, UpdateFlashcardSetDto dto)
+        {
+            var set = await _context.FlashcardSets.FindAsync(setId);
+
+            if (set == null) return null;
+
+            // Only owner can edit
+            if (set.UserId != userId) return null;
+
+            set.Title = dto.Title;
+            set.Description = dto.Description;
+
+            await _context.SaveChangesAsync();
+            return set;
+        }
+
     }
 }

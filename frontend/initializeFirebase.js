@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApp, getApps } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics"; // Uncomment if you need analytics
 
 // --- 1. We ONLY import from "firebase/auth" ---
@@ -28,7 +28,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// changed to prevent multiple app initializations
 // const analytics = getAnalytics(app);
 
 // --- 2. We ONLY initialize auth ---

@@ -4,7 +4,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { auth } from "../../../initializeFirebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { Pencil } from "lucide-react";
+import { MoreHorizontal, Edit2, Trash2 } from "lucide-react";
+
 
 export default function OverviewOfCardsPage() {
   const searchParams = useSearchParams();
@@ -16,6 +17,14 @@ export default function OverviewOfCardsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editTerms, setEditTerms] = useState<string[]>([]);
+  const [editDefinitions, setEditDefinitions] = useState<string[]>([]);
+
 
   // get the logged in user
   const loggedInUserUID = firebaseUser?.uid;
@@ -32,7 +41,6 @@ export default function OverviewOfCardsPage() {
       return null;
     }
   };
-  
 
   /** Normalize set object from backend */
   const normalizeSet = (raw: any) => ({
@@ -77,6 +85,17 @@ export default function OverviewOfCardsPage() {
 
     return data.map((c: any) => normalizeCard(c));
   };
+
+  useEffect(() => {
+    if (!setData) return;
+
+    setEditTitle(setData.title || "");
+    setEditDescription(setData.description || "");
+
+    // Convert your loaded cards → terms + definitions
+    setEditTerms(cards.map(c => c.term));
+    setEditDefinitions(cards.map(c => c.definition));
+  }, [setData, cards]);
 
   /* ============================= */
   /*             STYLES            */
@@ -275,8 +294,58 @@ export default function OverviewOfCardsPage() {
   console.log("Is owner:", isOwner);
   console.log("Full setData:", setData);
 
-  const handleEditSet = () => {
-    router.push(`/edit-set/${setId}`);
+  const handleUpdateSet = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+
+      const res = await fetch(`http://localhost:5261/api/flashcardsets/${setId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: editTitle,
+          description: editDescription,
+          terms: editTerms,
+          definitions: editDefinitions
+        })
+      });
+
+      if (res.ok) {
+        setIsEditMode(false);
+      } else {
+        alert("Failed to update set.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSet = async () => {
+    const confirmed = confirm("Are you sure you want to delete this flashcard set?");
+    if (!confirmed) return;
+
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+
+      const res = await fetch(`http://localhost:5261/api/flashcardsets/${setId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        router.push("/library");
+      } else {
+        alert("Failed to delete set.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -288,78 +357,200 @@ export default function OverviewOfCardsPage() {
           <div
             style={{
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               justifyContent: "space-between",
               marginBottom: 10,
-              gap: 10,
             }}
           >
-            <h1 style={{ ...titleText, margin: 0 }}>{setData.title}</h1>
+            {/* EDIT MODE TITLE INPUT */}
+            {isEditMode ? (
+              <div style={{ width: "100%" }}> 
 
-            {isOwner && (
-              <button
-                onClick={handleEditSet}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <Pencil size={20} color="#4A1942" />
-              </button>
-            )}
-          </div>
+                {/* Title */} 
+                <input 
+                  value={editTitle} 
+                  onChange={(e) => setEditTitle(e.target.value)} 
+                  style={{ 
+                    width: "100%", 
+                    padding: "8px 12px", 
+                    fontSize: 22, 
+                    fontWeight: 600, 
+                    border: "1px solid #ccc", 
+                    borderRadius: 8, 
+                  }} 
+                  autoFocus
+                />
 
-          <p style={subtitleText}>{setData.description}</p>
-
-          {setData.createdBy && (
-            <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}>
-              Created by: <i>{setData.createdBy}</i>
-            </p>
-          )}
-
-          {setData.tags.length > 0 && (
-            <p style={tagStyle}>{setData.tags.join(", ")}</p>
-          )}
-
-          <div style={buttonGroup}>
-            <PrimaryButton
-              label="Flashcards"
-              onClick={() => router.push(`/flashcards?id=${setId}`)}
-            />
-            {/* <PrimaryButton
-              label="Multiple Choice"
-              onClick={() => router.push(`/multipleChoice?id=${setId}`)}
-            />
-            <PrimaryButton
-              label="Quiz"
-              onClick={() => router.push(`/quiz?id=${setId}`)}
-            /> */}
-          </div>
-        </div>
-
-        {/* RIGHT SIDE — TERMS & DEFINITIONS */}
-        <div style={rightColumn}>
-          <h2 style={sectionTitle}>Terms & Definitions</h2>
-
-          {cards.length === 0 ? (
-            <p style={{ color: "#999" }}>No cards available.</p>
-          ) : (
-            <div style={{ marginTop: 10 }}>
-              {cards.map((card) => (
-                <div key={card.id} style={termItem}>
-                  <strong style={{ fontSize: 16 }}>{card.term}</strong>
-                  <p style={{ marginTop: 5, color: "#444" }}>{card.definition}</p>
+                {/* Description */}
+                <input
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: 8,
+                    minHeight: "120px",
+                    fontSize: 16,
+                    marginTop: 12,
+                  }}
+                />
+               
+                <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
+                  <button 
+                    onClick={handleUpdateSet}
+                    style={{ 
+                      padding: "8px 14px", 
+                      background: "#4A1942", 
+                      color: "#fff", 
+                      border: "none", 
+                      borderRadius: 8, 
+                      cursor: "pointer", 
+                    }} 
+                  > 
+                    Save 
+                  </button> 
+                  
+                  <button 
+                    onClick={() => { 
+                      setIsEditMode(false); 
+                      setEditTitle(setData.title); 
+                    }} 
+                    style={{ 
+                      padding: "8px 14px", 
+                      background: "#ccc", 
+                      color: "#333", 
+                      border: "none", 
+                      borderRadius: 8, 
+                      cursor: "pointer", 
+                    }} 
+                  > 
+                    Cancel 
+                  </button> 
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+          ) : ( 
+            <> 
+              <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>
+                {setData.title}
+              </h1> 
+              <p style={{ color: "#555", marginBottom: 12 }}>
+                {setData.description}
+              </p>
+           
 
-      </div>
-    </PageContainer>
-  );
-}
+              {!isEditMode && isOwner && (
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 6,
+                    }}
+                  >
+                    <MoreHorizontal size={24} color="black" />
+                  </button>
+
+                  {isMenuOpen && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        top: 30,
+                        background: "#fff",
+                        border: "1px solid #ddd",
+                        borderRadius: 10,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        display: "flex",
+                        flexDirection: "column",
+                        minWidth: 150,
+                        zIndex: 5,
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          setIsEditMode(true);
+                          setIsMenuOpen(false);
+                        }}
+                        style={{
+                          padding: "10px 14px",
+                          background: "none",
+                          border: "none",
+                          textAlign: "left",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Edit2 size={16} /> Edit Deck
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteSet()}
+                        style={{
+                          padding: "10px 14px",
+                          background: "none",
+                          border: "none",
+                          color: "red",
+                          textAlign: "left",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Trash2 size={15} />  Delete Deck
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>    
+
+                  {setData.createdBy && ( 
+                    <p style={{ color: "#777", fontSize: 14, marginBottom: 15 }}> 
+                      Created by: <i>{setData.createdBy}</i> 
+                    </p>
+                  )}
+
+                  {setData.tags.length > 0 && ( 
+                    <p style={tagStyle}>{setData.tags.join(", ")}</p> 
+                  )}
+
+                  <div style={buttonGroup}> 
+                    <PrimaryButton 
+                      label="Flashcards" 
+                      onClick={() => router.push(`/flashcards?id=${setId}`)} 
+                    />
+                    {/*<PrimaryButton 
+                      label="Multiple Choice" 
+                      onClick={() => router.push(/multipleChoice?id=${setId})}
+                    /> 
+                    <PrimaryButton 
+                      label="Quiz" 
+                      onClick={() => router.push(/quiz?id=${setId})}
+                    /> */} 
+                  </div>
+                </div>
+              
+
+                {/* RIGHT SIDE — TERMS & DEFINITIONS */}
+                <div style={rightColumn}>
+                  <h2 style={sectionTitle}>Terms & Definitions</h2>
+
+                  {cards.length === 0 ? (
+                    <p style={{ color: "#999" }}>No cards available.</p>
+                  ) : (
+                    <div style={{ marginTop: 10 }}>
+                      {cards.map((card) => (
+                        <div key={card.id} style={termItem}>
+                          <strong style={{ fontSize: 16 }}>{card.term}</strong>
+                          <p style={{ marginTop: 5, color: "#444" }}>{card.definition}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PageContainer>
+          );
+        }

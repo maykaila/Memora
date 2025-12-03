@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Memora App",
+  title: "Memora",
   description: "Fullstack web project",
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({

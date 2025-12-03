@@ -35,7 +35,7 @@ export default function AssignDeckModal({ isOpen, onClose, classId, onSuccess }:
         
         const idToken = await user.getIdToken();
         try {
-          const res = await fetch('http://localhost:5261/api/flashcardsets/my-sets', {
+          const res = await fetch('https://memora-api.dcism.org/api/flashcardsets/my-sets', {
             headers: { 'Authorization': `Bearer ${idToken}` }
           });
           if (res.ok) {
@@ -73,7 +73,7 @@ export default function AssignDeckModal({ isOpen, onClose, classId, onSuccess }:
       if (!user) return;
       const idToken = await user.getIdToken();
 
-      const response = await fetch(`http://localhost:5261/api/classes/${classId}/assign/${selectedDeckId}`, {
+      const response = await fetch(`https://memora-api.dcism.org/api/classes/${classId}/assign/${selectedDeckId}`, {
         method: 'POST',
         headers: { 
             'Authorization': `Bearer ${idToken}`,

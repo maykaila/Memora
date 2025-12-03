@@ -34,7 +34,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: SidebarProps) 
       if (user) {
         try {
           const token = await user.getIdToken();
-          const response = await fetch(`http://localhost:5261/api/users/${user.uid}`, {
+          const response = await fetch(`https://memora-api.dcism.org/api/users/${user.uid}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 

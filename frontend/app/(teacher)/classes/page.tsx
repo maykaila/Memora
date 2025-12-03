@@ -51,7 +51,7 @@ export default function MyClassesPage() {
   // ... [fetchClasses function remains the same] ...
   const fetchClasses = useCallback(async (user: any) => {
     const idToken = await user.getIdToken();
-    const response = await fetch('http://localhost:5261/api/classes/teaching', {
+    const response = await fetch('https://memora-api.dcism.org/api/classes/teaching', {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',

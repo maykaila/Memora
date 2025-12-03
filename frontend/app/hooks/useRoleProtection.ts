@@ -24,7 +24,7 @@ export function useRoleProtection(requiredRole: "student" | "teacher") {
 
         // Ask your backend: "What role is this user?"
         // (Make sure your backend API is running!)
-        const response = await fetch(`http://localhost:5261/api/users/${user.uid}`, {
+        const response = await fetch(`https://memora-api.dcism.org/api/users/${user.uid}`, {
           headers: {
              Authorization: `Bearer ${idToken}`
           }

@@ -47,7 +47,7 @@ export default function TeacherDashboard() {
 
   const fetchFoldersData = useCallback(async (user: any) => {
     const idToken = await user.getIdToken();
-    const folderResponse = await fetch('http://localhost:5261/api/folders/my-folders', {
+    const folderResponse = await fetch('https://memora-api.dcism.org/api/folders/my-folders', {
       headers: { 'Authorization': `Bearer ${idToken}` },
     });
     if (folderResponse.ok) {
@@ -58,7 +58,7 @@ export default function TeacherDashboard() {
   // 3. Refactor Class Fetching to reusable function
   const fetchClassesData = useCallback(async (user: any) => {
     const idToken = await user.getIdToken();
-    const classesResponse = await fetch('http://localhost:5261/api/classes/teaching', {
+    const classesResponse = await fetch('https://memora-api.dcism.org/api/classes/teaching', {
         headers: { 'Authorization': `Bearer ${idToken}` },
     });
     
@@ -78,7 +78,7 @@ export default function TeacherDashboard() {
           const idToken = await user.getIdToken();
           
           // 1. Fetch Decks
-          const myResponse = await fetch('http://localhost:5261/api/flashcardsets/my-sets', {
+          const myResponse = await fetch('https://memora-api.dcism.org/api/flashcardsets/my-sets', {
             headers: { 'Authorization': `Bearer ${idToken}` },
           });
           if (myResponse.ok) {

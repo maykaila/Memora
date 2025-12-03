@@ -62,7 +62,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowMemoraFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "https://memora.dcism.org")
+            // policy.WithOrigins("http://localhost:3000", "https://memora.dcism.org")
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });

@@ -47,7 +47,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
     const token = await user.getIdToken();
     
     try {
-      const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+      const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}`, {
          headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -67,7 +67,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
     const token = await user.getIdToken();
 
     try {
-      const res = await fetch(`http://localhost:5261/api/folders/${folderId}/decks`, {
+      const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}/decks`, {
          headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -113,7 +113,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
         if (!user) return;
         const token = await user.getIdToken();
         
-        const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+        const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}`, {
             method: 'PUT',
             headers: { 
                 Authorization: `Bearer ${token}`,
@@ -139,7 +139,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
          if (!user) return;
          const token = await user.getIdToken();
  
-         const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+         const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}`, {
              method: 'DELETE',
              headers: { Authorization: `Bearer ${token}` }
          });
@@ -155,7 +155,7 @@ export default function TeacherFolderDetailsPage({ params }: { params: Promise<{
         if (!user) return;
         const token = await user.getIdToken();
 
-        const res = await fetch(`http://localhost:5261/api/folders/${folderId}/sets/${deckId}`, {
+        const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}/sets/${deckId}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });

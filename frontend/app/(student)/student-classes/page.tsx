@@ -45,7 +45,7 @@ export default function StudentClassesPage() {
     try {
       const idToken = await user.getIdToken();
       // Ensure this endpoint returns the list of ClassDto objects we created on the backend
-      const response = await fetch('http://localhost:5261/api/classes/joined', {
+      const response = await fetch('https://memora-api.dcism.org/api/classes/joined', {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${idToken}`, 'Cache-Control': 'no-cache' },
       });

@@ -17,7 +17,7 @@ export default function FlashcardPage() {
   /** Fetch cards from backend API */
   const fetchCards = async () => {
     const res = await fetch(
-      `http://localhost:5261/api/flashcardsets/${setId}/cards`,
+      `https://memora-api.dcism.org/api/flashcardsets/${setId}/cards`,
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
 
@@ -41,7 +41,7 @@ export default function FlashcardPage() {
   /** Fetch set info */
   const fetchSetInfo = async () => {
     const res = await fetch(
-      `http://localhost:5261/api/flashcardsets/${setId}`,
+      `https://memora-api.dcism.org/api/flashcardsets/${setId}`,
       { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
 

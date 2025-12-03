@@ -132,7 +132,7 @@ export default function FlashcardCreator({ role }: FlashcardCreatorProps) {
     });
 
     try {
-      const response = await fetch('http://localhost:5261/api/flashcardsets', {
+      const response = await fetch('https://memora-api.dcism.org/api/flashcardsets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

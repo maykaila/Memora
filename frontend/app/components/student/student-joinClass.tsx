@@ -34,7 +34,7 @@ export default function JoinClassModal({ isOpen, onClose, onSuccess }: JoinClass
       const idToken = await user.getIdToken();
 
       // 3. Use 'joinCode' state variable here (fixed from 'code')
-      const response = await fetch(`http://localhost:5261/api/classes/join/${joinCode}`, {
+      const response = await fetch(`https://memora-api.dcism.org/api/classes/join/${joinCode}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${idToken}` }
       });

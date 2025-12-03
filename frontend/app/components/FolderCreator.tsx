@@ -29,7 +29,7 @@ export default function CreateFolderModal({ isOpen, onClose, onSuccess, role }: 
       
       const idToken = await user.getIdToken();
 
-      const response = await fetch('http://localhost:5261/api/folders', {
+      const response = await fetch('https://memora-api.dcism.org/api/folders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -63,7 +63,7 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
             'Authorization': `Bearer ${idToken}` 
         };
 
-        const classRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}`, { headers });
+        const classRes = await fetch(`https://memora-api.dcism.org/api/classes/${currentClassId}`, { headers });
         if (!classRes.ok) throw new Error("Class not found or access denied.");
         const rawData = await classRes.json();
         
@@ -85,7 +85,7 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
         });
 
         try {
-            const assignmentsRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/assignments/me`, { headers });
+            const assignmentsRes = await fetch(`https://memora-api.dcism.org/api/classes/${currentClassId}/assignments/me`, { headers });
             if (assignmentsRes.ok) {
                 const rawAssignments = await assignmentsRes.json();
                 setAssignments(rawAssignments.map((a: any) => ({
@@ -102,7 +102,7 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
             setAssignments([]);
         }
 
-        const membersRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/students`, { headers });
+        const membersRes = await fetch(`https://memora-api.dcism.org/api/classes/${currentClassId}/students`, { headers });
         if (membersRes.ok) {
             const rawMembers = await membersRes.json();
             setStudents(rawMembers.map((m: any) => ({
@@ -141,7 +141,7 @@ export default function StudentClassPage({ params }: { params: Promise<any> }) {
                 if (!user) { router.push('/login'); return; }
                 const idToken = await user.getIdToken();
 
-                const response = await fetch(`http://localhost:5261/api/classes/${classId}/leave`, {
+                const response = await fetch(`https://memora-api.dcism.org/api/classes/${classId}/leave`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${idToken}` }
                 });

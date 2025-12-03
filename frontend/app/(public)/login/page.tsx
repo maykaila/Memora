@@ -39,7 +39,7 @@ export default function LoginPage() {
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      const response = await fetch(`http://localhost:5261/api/users/${user.uid}`, {
+      const response = await fetch(`https://memora-api.dcism.org/api/users/${user.uid}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

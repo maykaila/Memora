@@ -47,7 +47,7 @@ export default function StudentDashboard() {
 
   const fetchFoldersData = useCallback(async (user: any) => {
     const idToken = await user.getIdToken();
-    const folderResponse = await fetch('http://localhost:5261/api/folders/my-folders', {
+    const folderResponse = await fetch('https://memora-api.dcism.org/api/folders/my-folders', {
       headers: { 'Authorization': `Bearer ${idToken}` },
     });
     if (folderResponse.ok) {
@@ -61,12 +61,12 @@ export default function StudentDashboard() {
         try {
           const idToken = await user.getIdToken();
           
-          await fetch('http://localhost:5261/api/users/checkin', {
+          await fetch('https://memora-api.dcism.org/api/users/checkin', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${idToken}` },
           });
 
-          const myResponse = await fetch('http://localhost:5261/api/flashcardsets/my-sets', {
+          const myResponse = await fetch('https://memora-api.dcism.org/api/flashcardsets/my-sets', {
             headers: { 'Authorization': `Bearer ${idToken}` },
           });
           if (!myResponse.ok) throw new Error("Failed to load decks");
@@ -76,7 +76,7 @@ export default function StudentDashboard() {
 
           await fetchFoldersData(user);
 
-          const publicResponse = await fetch('http://localhost:5261/api/flashcardsets', { 
+          const publicResponse = await fetch('https://memora-api.dcism.org/api/flashcardsets', { 
             headers: { 'Authorization': `Bearer ${idToken}` },
           });
           if (publicResponse.ok) {

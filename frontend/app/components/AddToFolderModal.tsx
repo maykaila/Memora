@@ -30,7 +30,7 @@ export default function AddToFolderModal({ isOpen, onClose, deckId }: Props) {
         const token = await user.getIdToken();
         
         try {
-          const res = await fetch("http://localhost:5261/api/folders/my-folders", {
+          const res = await fetch("https://memora-api.dcism.org/api/folders/my-folders", {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (res.ok) {
@@ -54,7 +54,7 @@ export default function AddToFolderModal({ isOpen, onClose, deckId }: Props) {
 
       // API Call to add deck to folder
       // Assuming endpoint: POST /api/folders/{folderId}/add/{deckId}
-      const res = await fetch(`http://localhost:5261/api/folders/${folderId}/add-set/${deckId}`, {
+      const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}/add-set/${deckId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });

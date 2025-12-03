@@ -102,7 +102,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
       const headers = { Authorization: `Bearer ${token}` };
 
       // 1. Fetch Sets
-      const setsRes = await fetch("http://localhost:5261/api/flashcardsets/my-sets", { headers });
+      const setsRes = await fetch("https://memora-api.dcism.org/api/flashcardsets/my-sets", { headers });
       if (setsRes.ok) {
         const data = await setsRes.json();
         setSets(data.map((item: any) => {
@@ -120,7 +120,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
       }
 
       // 2. Fetch Folders
-      const foldersRes = await fetch("http://localhost:5261/api/folders/my-folders", { headers });
+      const foldersRes = await fetch("https://memora-api.dcism.org/api/folders/my-folders", { headers });
       if (foldersRes.ok) {
         const folderData = await foldersRes.json();
         setFolders(folderData.map((f: any) => ({
@@ -207,7 +207,7 @@ export default function LibraryPage({ role = "student" }: LibraryPageProps) {
         if (!user) throw new Error("User not authenticated");
         const token = await user.getIdToken();
 
-        const response = await fetch(`http://localhost:5261/api/flashcardsets/${id}`, {
+        const response = await fetch(`https://memora-api.dcism.org/api/flashcardsets/${id}`, {
             method: 'DELETE',
             headers: { "Authorization": `Bearer ${token}` }
         });

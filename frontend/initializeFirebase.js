@@ -16,7 +16,7 @@ import {
 // needed for flashcards
 import { getFirestore } from "firebase/firestore";
 
-export const API_BASE_URL = "http://localhost:5261";
+export const API_BASE_URL = "https://memora-api.dcism.org";
 
 // Your web app's Firebase configuration (remains the same)
 const firebaseConfig = {

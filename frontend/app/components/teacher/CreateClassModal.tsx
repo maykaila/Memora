@@ -30,7 +30,7 @@ export default function CreateClassModal({ isOpen, onClose, onSuccess }: CreateC
       const idToken = await user.getIdToken();
 
       // POST to create class
-      const response = await fetch('http://localhost:5261/api/classes', {
+      const response = await fetch('https://memora-api.dcism.org/api/classes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

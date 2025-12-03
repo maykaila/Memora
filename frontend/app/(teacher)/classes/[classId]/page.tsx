@@ -67,7 +67,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     };
 
     // A. Fetch Class Details
-    const classRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}`, { headers });
+    const classRes = await fetch(`https://memora-api.dcism.org/api/classes/${currentClassId}`, { headers });
     if (classRes.ok) {
       const rawData = await classRes.json();
       setClassData({
@@ -80,7 +80,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
       });
     } else {
       // Fallback logic
-      const allRes = await fetch(`http://localhost:5261/api/classes/teaching`, { headers });
+      const allRes = await fetch(`https://memora-api.dcism.org/api/classes/teaching`, { headers });
       if (allRes.ok) {
           const allData = await allRes.json();
           const found = allData.find((c: any) => (c.classId || c.ClassId) === currentClassId);
@@ -100,7 +100,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     }
 
     // B. Fetch Students List
-    const studentsRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/students`, { headers });
+    const studentsRes = await fetch(`https://memora-api.dcism.org/api/classes/${currentClassId}/students`, { headers });
     if (studentsRes.ok) {
       const rawStudents = await studentsRes.json();
       const mappedStudents = rawStudents.map((s: any) => ({
@@ -114,7 +114,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
     }
 
     // C. Fetch Assignments
-    const decksRes = await fetch(`http://localhost:5261/api/classes/${currentClassId}/decks`, { headers });
+    const decksRes = await fetch(`https://memora-api.dcism.org/api/classes/${currentClassId}/decks`, { headers });
     if (decksRes.ok) {
       const rawDecks = await decksRes.json();
       const mappedDecks = rawDecks.map((d: any) => ({
@@ -176,7 +176,7 @@ export default function ClassDetailsPage({ params }: { params: Promise<{ classId
         if (!user) return;
         const token = await user.getIdToken();
 
-        const res = await fetch(`http://localhost:5261/api/classes/${classId}/students/${studentUid}`, {
+        const res = await fetch(`https://memora-api.dcism.org/api/classes/${classId}/students/${studentUid}`, {
             method: 'DELETE',
             headers: { 
                 Authorization: `Bearer ${token}` 

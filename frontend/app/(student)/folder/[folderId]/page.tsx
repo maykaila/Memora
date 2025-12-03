@@ -50,14 +50,14 @@ export default function StudentFolderDetailsPage({ params }: { params: Promise<{
     const headers = { Authorization: `Bearer ${token}` };
 
     try {
-      const folderRes = await fetch(`http://localhost:5261/api/folders/${folderId}`, { headers });
+      const folderRes = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}`, { headers });
       if (folderRes.ok) {
         const data = await folderRes.json();
         setFolder(data);
         setEditTitle(data.title);
       }
 
-      const decksRes = await fetch(`http://localhost:5261/api/folders/${folderId}/decks`, { headers });
+      const decksRes = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}/decks`, { headers });
       if (decksRes.ok) {
         const rawDecks = await decksRes.json();
         setDecks(rawDecks.map((d: any) => ({
@@ -83,7 +83,7 @@ export default function StudentFolderDetailsPage({ params }: { params: Promise<{
         const token = await user.getIdToken();
         
         // Assuming endpoint: PUT /api/folders/{id}
-        const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+        const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}`, {
             method: 'PUT',
             headers: { 
                 Authorization: `Bearer ${token}`,
@@ -113,7 +113,7 @@ export default function StudentFolderDetailsPage({ params }: { params: Promise<{
         const token = await user.getIdToken();
 
         // Assuming endpoint: DELETE /api/folders/{id}
-        const res = await fetch(`http://localhost:5261/api/folders/${folderId}`, {
+        const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -139,7 +139,7 @@ export default function StudentFolderDetailsPage({ params }: { params: Promise<{
 
         // Assuming endpoint: DELETE /api/folders/{folderId}/sets/{setId}
         // You might need to add this endpoint to your C# controller if it doesn't exist yet
-        const res = await fetch(`http://localhost:5261/api/folders/${folderId}/sets/${deckId}`, {
+        const res = await fetch(`https://memora-api.dcism.org/api/folders/${folderId}/sets/${deckId}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });

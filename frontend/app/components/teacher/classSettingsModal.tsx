@@ -35,7 +35,7 @@ export default function ClassSettingsModal({ isOpen, onClose, classId, currentNa
       if (!user) return;
       const idToken = await user.getIdToken();
 
-      const response = await fetch(`http://localhost:5261/api/classes/${classId}`, {
+      const response = await fetch(`https://memora-api.dcism.org/api/classes/${classId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export default function ClassSettingsModal({ isOpen, onClose, classId, currentNa
       if (!user) return;
       const idToken = await user.getIdToken();
 
-      const response = await fetch(`http://localhost:5261/api/classes/${classId}`, {
+      const response = await fetch(`https://memora-api.dcism.org/api/classes/${classId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${idToken}` }
       });

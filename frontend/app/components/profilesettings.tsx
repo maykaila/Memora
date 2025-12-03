@@ -7,7 +7,7 @@ import { User, signOut } from 'firebase/auth';
 import { uploadProfilePicture, updateUserProfile } from '../../services/userService';
 import ChangePassword from './changepass'; 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5261";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://memora-api.dcism.org";
 
 interface ProfileSettingsProps {
   isOpen: boolean;
